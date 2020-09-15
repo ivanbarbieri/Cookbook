@@ -1,10 +1,26 @@
+#include "db_manager.h"
+
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    const QString path = "cookbook.db";
 
+    DbManager db(path);
+    if (db.isOpen()) {
+        if (db.createTables()) {
+            qDebug() << "Tables created";
+        } else {
+            exit(-1);
+        }
+
+    } else {
+        qDebug() << "Connection with database fail" << Qt::endl;
+        exit(-1);
+    }
+
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
