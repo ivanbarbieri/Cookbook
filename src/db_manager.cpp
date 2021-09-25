@@ -3,11 +3,10 @@
 #include <QDebug>
 #include <QSqlError>
 #include <QSqlQuery>
-#include <string>
 
 DbManager::DbManager(const QString &path)
 {
-    db = QSqlDatabase::addDatabase("QSQLITE");
+    db = QSqlDatabase::addDatabase("QSQLITE", "cookbook");
     db.setDatabaseName(path);
 
     if (db.open()) {
@@ -30,43 +29,39 @@ bool DbManager::isOpen() const
 
 bool DbManager::createTables()
 {
-    QString queries[] = {"CREATE TABLE IF NOT EXISTS recipes ("
-                         "recipeId INTEGER PRIMARY KEY,"
-                         "recipeName TEXT NOT NULL,"
-                         "preparationTime TEXT DEFAULT '?',"
-                         "cookTime TEXT DEFAULT '?',"
-                         "totalTime TEXT DEFAULT '?',"
-                         "yield TEXT DEFAULT '?',"
-                         "instructions TEXT);"
-                         ,
-                         "CREATE TABLE IF NOT EXISTS ingredients ("
-                         "ingredientId INTEGER PRIMARY KEY,"
-                         "ingredientName TEXT NOT NULL,"
-                         "quantity TEXT);"
-                         ,
-                         "CREATE TABLE IF NOT EXISTS recipes_ingredients ("
-                         "recipeId INTEGER NOT NULL,"
-                         "ingredientId INTEGER NOT NULL,"
-                         "quantity TEXT NOT NULL,"
-                         "FOREIGN KEY (recipeId)"
-                         "  REFERENCES recipes (recipeId) ON DELETE CASCADE"
-                         "                                ON UPDATE NO ACTION,"
-                         "FOREIGN KEY (ingredientId)"
-                         "  REFERENCES ingredients (ingredientId) ON DELETE CASCADE"
-                         "                                        ON UPDATE NO ACTION);"
-                         ,
-                         nullptr
-                        };
+    QVector <QString> queries {
+        "CREATE TABLE IF NOT EXISTS recipes ("
+        "recipeId INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "recipeTitle TEXT,"
+        "pathImage TEXT,"
+        "preparationTime INTEGER,"
+        "cookingTime INTEGER,"
+        "yield TEXT,"
+        "instructions TEXT)"
+        ,
+        "CREATE TABLE IF NOT EXISTS ingredients ("
+        "ingredientId INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "ingredientName TEXT UNIQUE ON CONFLICT IGNORE)"
+        ,
+        "CREATE TABLE IF NOT EXISTS recipes_ingredients ("
+        "recipeId INTEGER NOT NULL,"
+        "ingredientId INTEGER NOT NULL,"
+        "quantity TEXT,"
+        "FOREIGN KEY (recipeId)"
+        "  REFERENCES recipes (recipeId) ON DELETE CASCADE"
+        "                                ON UPDATE NO ACTION,"
+        "FOREIGN KEY (ingredientId)"
+        "  REFERENCES ingredients (ingredientId) ON DELETE CASCADE"
+        "                                        ON UPDATE NO ACTION)"
+    };
 
-    for (int i = 0; queries[i] != nullptr; i++) {
-        QSqlQuery query;
-        query.prepare(queries[i]);
+    QSqlQuery query(QSqlDatabase::database("cookbook"));
+    for (auto q :  queries) {
+        query.prepare(q);
         if (!query.exec()) {
-            qDebug() << "Database: table couldn't be created:" << Qt::endl
-                     << queries[i] << Qt::endl;
+            qDebug() << query.lastError().text();
             return false;
         }
     }
     return true;
 }
-

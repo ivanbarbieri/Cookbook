@@ -2,9 +2,11 @@
 #define DBMANAGER_H
 
 #include <QSqlDatabase>
+#include <QSqlQueryModel>
 
-class DbManager
+class DbManager : public QSqlQueryModel
 {
+    Q_OBJECT
 public:
     DbManager(const QString &path);
     ~DbManager();
@@ -15,5 +17,4 @@ public:
 private:
     QSqlDatabase db;
 };
-
 #endif // DBMANAGER_H
