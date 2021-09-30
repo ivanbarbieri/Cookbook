@@ -2,5 +2,8 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>SearchPage.qml</file>
+        <file>imports/Constants/qmldir</file>
+        <file>imports/Constants/Constants.qml</file>
+        <file>imports/Constants/Colors.qml</file>
     </qresource>
 </RCC>

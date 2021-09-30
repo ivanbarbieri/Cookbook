@@ -1,5 +1,7 @@
-import QtQuick 2.9
-import QtQuick.Controls 2.2
+import Constants
+
+import QtQuick
+import QtQuick.Controls
 
 Frame {
     width: parent.width
@@ -13,7 +15,7 @@ Frame {
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.top: parent.top
-        color: "#26282a"
+        color: Colors.darkGrey
 
         Button {
             id: searchButton
@@ -45,10 +47,10 @@ Frame {
                 width: 150
                 height: 30
                 anchors.left: parent.left
-                color: "#000000"
+                color: Colors.black
 
                 Rectangle {
-                    color: "#26282a"
+                    color: Colors.darkGrey
                     anchors.right: searchButton.left
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
@@ -63,8 +65,8 @@ Frame {
                         anchors.fill: parent
                         horizontalAlignment: Text.AlignLeft
                         font.pointSize: 12
-                        color: "#ffffff"
-                        selectionColor: "#2828ff"
+                        color: Colors.white
+                        selectionColor: Colors.lightGrey
                     }
                 }
 
