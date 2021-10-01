@@ -45,11 +45,21 @@ ApplicationWindow {
                 text: qsTr("Search Page")
                 width: parent.width
                 onClicked: {
+                    stackView.pop()
                     stackView.push("SearchPage.qml")
                     drawer.close()
                 }
             }
 
+            ItemDelegate {
+                text: qsTr("Add recipe")
+                width: parent.width
+                onClicked: {
+                    stackView.pop()
+                    stackView.push("AddRecipe.qml")
+                    drawer.close()
+                }
+            }
         }
     }
 

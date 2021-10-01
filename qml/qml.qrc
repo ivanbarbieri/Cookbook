@@ -2,8 +2,14 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>SearchPage.qml</file>
+        <file>AddRecipe.qml</file>
         <file>imports/Constants/qmldir</file>
         <file>imports/Constants/Constants.qml</file>
         <file>imports/Constants/Colors.qml</file>
+        <file>imports/CustomModules/qmldir</file>
+        <file>imports/CustomModules/CustomButton.qml</file>
+        <file>imports/CustomModules/CustomTextField.qml</file>
+        <file>imports/CustomModules/CustomScrollBar.qml</file>
+        <file>images/placeholder.png</file>
     </qresource>
 </RCC>

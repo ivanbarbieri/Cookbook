@@ -1,0 +1,4 @@
+module CustomModules
+CustomButton 1.0 CustomButton.qml
+CustomTextField 1.0 CustomTextField.qml
+CustomScrollBar 1.0 CustomScrollBar.qml

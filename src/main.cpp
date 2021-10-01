@@ -1,7 +1,9 @@
 #include "db_manager.h"
+#include "add_recipe.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +23,9 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    AddRecipe addRecipe;
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("_addRecipe", &addRecipe);
     engine.addImportPath(":/imports");
     engine.load(QUrl(QLatin1String("qrc:/main.qml")));
 
