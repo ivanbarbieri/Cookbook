@@ -59,7 +59,7 @@ bool DbManager::createTables()
     for (auto q :  queries) {
         query.prepare(q);
         if (!query.exec()) {
-            qDebug() << query.lastError().text();
+            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
             return false;
         }
     }

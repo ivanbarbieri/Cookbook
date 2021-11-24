@@ -95,7 +95,7 @@ void AddRecipe::addRecipe(const QString &pathImage, const QString &recipeTitle,
     query.bindValue(":yield", yield);
     query.bindValue(":instructions", instructions);
     if (!query.exec())
-         qDebug() << "SqLite error:" << query.lastError().text() << Qt::endl;
+        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
 
     int recipeId = query.lastInsertId().toInt();
 
@@ -104,14 +104,14 @@ void AddRecipe::addRecipe(const QString &pathImage, const QString &recipeTitle,
         query.prepare("SELECT ingredientId FROM ingredients WHERE ingredientName LIKE :name");
         query.bindValue(":name", ingredient.name);
         if (!query.exec()) {
-            qDebug() << "SqLite error:" << query.lastError().text() << Qt::endl;
+            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
         } else if (query.next()) {
             idIngredient = query.value(0).toInt();
         } else {
             query.prepare("INSERT INTO ingredients (ingredientName) VALUES (:ingredientName)");
             query.bindValue(":ingredientName", ingredient.name);
             if (!query.exec()) {
-                qDebug() << "SqLite error:" << query.lastError().text() << Qt::endl;
+               qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
             } else {
                 idIngredient = query.lastInsertId().toInt();
             }
@@ -123,7 +123,7 @@ void AddRecipe::addRecipe(const QString &pathImage, const QString &recipeTitle,
         query.bindValue(":ingredientId", idIngredient);
         query.bindValue(":quantity", ingredient.quantity);
         if (!query.exec())
-            qDebug() << "SqLite error:" << query.lastError().text() << Qt::endl;
+            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
     }
 
     db.commit();
