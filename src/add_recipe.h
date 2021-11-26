@@ -4,16 +4,16 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-struct Ingredient {
-    QString name;
-    QString quantity;
-};
-
 
 class AddRecipe : public QAbstractListModel {
     Q_OBJECT
 
 public:
+    struct Ingredient {
+        QString name;
+        QString quantity;
+    };
+
     enum Roles {
         NameRole = Qt::UserRole,
         QuantityRole

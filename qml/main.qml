@@ -1,4 +1,5 @@
 import Constants
+import CustomModules
 
 import QtQuick
 import QtQuick.Controls
@@ -22,13 +23,15 @@ ApplicationWindow {
             top: parent.top
             bottom: parent.bottom
         }
-
+        
         Button {
             width: 32
             height: width
             text: qsTr("\u2630")
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
             onClicked: drawer.open()
         }
     }
@@ -42,11 +45,11 @@ ApplicationWindow {
             anchors.fill: parent
 
             ItemDelegate {
-                text: qsTr("Search Page")
+                text: qsTr("Search recipe")
                 width: parent.width
                 onClicked: {
                     stackView.pop()
-                    stackView.push("SearchPage.qml")
+                    stackView.push("SearchRecipe.qml")
                     drawer.close()
                 }
             }
@@ -66,7 +69,6 @@ ApplicationWindow {
     Rectangle {
         color: Colors.darkGrey
         anchors {
-
             left: leftBar.right
             right: parent.right
             top: parent.top
@@ -75,7 +77,7 @@ ApplicationWindow {
 
         StackView {
             id: stackView
-            initialItem: "SearchPage.qml"
+            initialItem: "SearchRecipe.qml"
             anchors.fill: parent
         }
     }
