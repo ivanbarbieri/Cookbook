@@ -66,14 +66,11 @@ void SearchRecipe::search(const QString &recipeTitle)
                     "WHERE recipeTitle LIKE ? ");
     if (not mIngredients.isEmpty()) {
         strQuery.append("AND recipeId IN (SELECT recipeId "
-                        "FROM recipes_ingredients NATURAL JOIN ingredients "
-                        "WHERE ");
-        for (int i = 0; i < mIngredients.size(); i++) {
-            strQuery.append("ingredientName LIKE ? ");
-            if (i + 1 < mIngredients.size())
-                strQuery.append(" OR ");
-        }
-        strQuery.append(" GROUP BY recipeId HAVING COUNT(*) = " + QString::number(mIngredients.size()) + ") ");
+                        "FROM recipes_ingredients AS ri "
+                        "WHERE EXISTS (SELECT recipeId FROM recipes_ingredients NATURAL JOIN ingredients WHERE ri.recipeId=recipeId AND IngredientName LIKE ? ) ");
+        for (int i = 1; i < mIngredients.size(); i++)
+            strQuery.append("  AND EXISTS (SELECT recipeId FROM recipes_ingredients NATURAL JOIN ingredients WHERE ri.recipeId=recipeId AND IngredientName LIKE ? ) ");
+        strQuery.append(") ");
     }
     strQuery.append(" ORDER BY recipeTitle");
 
