@@ -135,7 +135,7 @@ Item {
 
         ListView {
             id: listRecipes
-            spacing: 5
+            spacing: 10
             clip: true
 
             anchors {
@@ -149,131 +149,219 @@ Item {
 
             model: _showRecipe
 
-            delegate: MouseArea {
+            delegate: Frame {
                 id: recipe
-                width: listRecipes.width - recipeScrollBar.width
                 height: 100
-                anchors {
-                    rightMargin: 5
-                }
-                Frame { // TEMP
-                    anchors.fill:parent
-                }
+                width: listRecipes.width - recipeScrollBar.width
 
-                Text {
-                    id: recipeId
-                    text: model.recipeId
-                    visible: false
-                }
-
-                Image {
-                    id: recipeImage
-                    fillMode: Image.PreserveAspectFit
-                    source: {return model.pathImage === "" ? "images/placeholder.png" : model.pathImage}
-
+                Item {
+                    id: content
+                    state: "docked"
                     anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                        margins: 5
-                    }
-                    Frame { // TEMP
-                        anchors.fill:parent
+                        fill: parent
                     }
 
-                    asynchronous : true
-                }
-
-                Text {
-                    id: recipeTitle
-                    text: model.recipeTitle
-
-                    anchors {
-                        left: recipeImage.right
-                        right: instructions.left
-                        top: parent.top
-                    }
-                    Frame { // TEMP
-                        anchors.fill:parent
-                    }
-                }
-
-                Text{
-                    text: "Preparaton time:"
-                    anchors {
-                        left: recipeImage.right;
-                        top: recipeImage.verticalCenter
-                    }
-                    Frame { // TEMP
-                        anchors.fill:parent
-                    }
-                    Text {
-                        id: preparationTime
-                        text: model.preparationTime
+                    ToolBar {
+                        id: toolBar
                         anchors {
-                            left: parent.right
-                            top: parent.bottom
+                            top: parent.top
+                            left: parent.left
+                            right: parent.right
                         }
-                        Frame {  // TEMP
-                            anchors.fill:parent
-                        }
-                    }
-                }
+                        Text {
+                            id: recipeTitle
+                            text: model.recipeTitle
+                            font.pointSize: 24
 
-                Text {
-                    text: "Coooking time:"
-                    anchors {
-                        left: preparationTime.parent.right
-                        top: preparationTime.parent.top
+                            anchors {
+                                left: parent.left
+                                right: dragMouseArea.left
+                                verticalCenter: parent.verticalCenter
+                                leftMargin: 2.5
+                            }
+                        }
+
+                        MouseArea {
+                            property var clickPos
+
+                            id: dragMouseArea
+                            anchors.fill: parent
+                            onPressed: {
+                                clickPos = Qt.point(mouseX,mouseY)
+                            }
+                            onPositionChanged: {
+                                var delta = Qt.point(mouseX - clickPos.x, mouseY - clickPos.y)
+                                var new_x = window.x + delta.x
+                                var new_y = window.y + delta.y
+                                window.x = new_x
+                                window.y = new_y
+                            }
+                        }
+                        Row {
+                            anchors { right: parent.right; verticalCenter: parent.verticalCenter; rightMargin: 8 }
+                            Button {
+                                flat: true
+                                icon.source: content.state == "docked" ?
+                                                 "qrc:images/placeholder.png" : "qrc:images/placeholder.png"
+                                onClicked: {
+                                    if(content.state == "docked")
+                                        content.state = "undocked"
+                                    else
+                                        content.state = "docked"
+                                }
+                            }
+                        }
                     }
-                    Frame { // TEMP
-                        anchors.fill:parent
-                    }
+
                     Text {
-                        id: cookingTime
-                        text: model.cookingTime
+                        id: recipeId
+                        text: model.recipeId
+                        visible: false
+                    }
+
+                    Image {
+                        id: recipeImage
+                        height: recipe.height
+                        fillMode: Image.PreserveAspectFit
+                        source: {return model.pathImage === "" ? "images/placeholder.png" : model.pathImage}
+
                         anchors {
-                            left: parent.right
-                            top: parent.bottom
+                            left: parent.left
+                            top: toolBar.bottom
+                            bottom: parent.bottom
+                            margins: 2.5
                         }
-                        Frame { // TEMP
-                            anchors.fill:parent
+
+                        asynchronous : true
+                    }
+
+                    Column {
+                        id: box
+                        anchors {
+                            left: recipeImage.right
+                            top: recipeImage.top
+                            bottom: recipeImage.bottom
+                            rightMargin: Constants.margin
+
+                        }
+                        Row {
+                            Text {
+                                text: qsTr("Preparaton time ")
+                            }
+                            Text {
+                                id: preparationTime
+                                text: model.preparationTime
+                                wrapMode: Text.Wrap
+                            }
+
+                        }
+                        Row {
+                            Text {
+                                text: qsTr("Coooking time ")
+                            }
+                            Text {
+                                id: cookingTime
+                                text: model.cookingTime
+                                wrapMode: Text.Wrap
+                            }
+                        }
+                        Row {
+                            Text {
+                                text: qsTr("Yield ")
+                            }
+                            Text {
+                                id: yield
+                                text: model.yield
+                                wrapMode: Text.Wrap
+                            }
+                        }
+
+                    }
+
+
+                    ScrollView {
+                        id: scrollInstruction
+                        width: (parent.width + anchors.rightMargin + anchors.leftMargin)/2
+                        clip: true
+
+                        anchors {
+                            left: box.right
+                            right: parent.right;
+                            top: toolBar.bottom
+                            bottom: parent.bottom
+                            leftMargin: Constants.margin
+                        }
+                        ScrollBar.vertical: CustomScrollBar {
+                            anchors.top: scrollInstruction.top
+                            anchors.right: scrollInstruction.right
+                            anchors.bottom: scrollInstruction.bottom
+                        }
+
+                        TextArea {
+                            id: instructions
+                            text: model.instructions
+                            readOnly: true
+                            color: Colors.white
+                            selectionColor: Colors.darkGrey
+                            selectedTextColor: Colors.white
+                            wrapMode: Text.Wrap
+                            font.pixelSize: 15
+                            background: Rectangle {
+                                color: Colors.grey
+                                radius: Constants.radius
+                            }
                         }
                     }
+
+                    /*
+                    CustomTextField {
+                        id: instructions
+                        text: model.instructions
+                        readOnly: true
+                        anchors {
+                            left: box.right
+                            right: parent.right;
+                            top: toolBar.bottom
+                            bottom: parent.bottom
+                            margins: 2.5
+                        }
+                    }
+*/
+                    states: [
+                        State {
+                            name: "undocked"
+                            PropertyChanges { target: recipe; height: 0 }
+                            PropertyChanges { target: window; visible: true }
+                            PropertyChanges { target: recipeImage; height: Math.min(parent.width, parent.height) * 0.3; anchors.bottom: undefined}
+
+                            ParentChange { target: content; parent: undockedContainer }
+                        },
+                        State {
+                            name: "docked"
+                            PropertyChanges { target: recipe; height: 100 }
+                            PropertyChanges { target: window; visible: false }
+                            PropertyChanges { target: recipeImage; height: recipe.height; anchors.bottom: parent.bottom}
+                            ParentChange { target: content; parent: recipe }
+                        }
+                    ]
                 }
 
-                Text {
-                    text: "Yield:"
-                    anchors {
-                        left: cookingTime.parent.right
-                        top: cookingTime.parent.top
-                    }
-                    Frame { // TEMP
-                        anchors.fill:parent
-                    }
-                    Text {
-                        id: yield
-                        text: model.yield
-                        anchors {
-                            left: parent.right
-                            top: parent.bottom
-                        }
-                        Frame { // TEMP
-                            anchors.fill:parent
-                        }
-                    }
-                }
+                Window {
+                    id: window
+                    color: Colors.darkGrey
+                    width: Constants.minWidth
+                    height: Constants.minHeight
+                    minimumWidth: Constants.minWidth
+                    minimumHeight: Constants.minHeight
 
-                Text {
-                    id: instructions
-                    text: model.instructions
-                    anchors {
-                        right: parent.right;
-                        top: parent.top
-                        bottom: parent.bottom
+                    flags: Qt.Window
+                    Item {
+                        id: undockedContainer
+                        anchors.fill: parent
                     }
-                    Frame { // TEMP
-                        anchors.fill:parent
+
+                    onClosing: {
+                        content.state = "docked"
                     }
                 }
             }
