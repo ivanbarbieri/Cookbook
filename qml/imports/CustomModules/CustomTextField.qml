@@ -13,10 +13,13 @@ TextField {
     horizontalAlignment: Text.AlignLeft
     verticalAlignment: Text.AlignVCenter
     wrapMode: Text.Wrap
-    bottomPadding: 0
+    bottomPadding: 2
     topPadding: 0
+    leftPadding: background.radius
+    rightPadding: background.radius
 
     background: Rectangle {
+        id: background
         color: Colors.grey
         border.width: 1
         radius: Constants.radius
