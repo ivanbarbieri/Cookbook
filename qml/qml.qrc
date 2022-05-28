@@ -10,6 +10,8 @@
         <file>imports/CustomModules/CustomButton.qml</file>
         <file>imports/CustomModules/CustomTextField.qml</file>
         <file>imports/CustomModules/CustomScrollBar.qml</file>
-        <file>images/placeholder.png</file>
+        <file>SearchRecipeForm.qml</file>
+        <file>icons/placeholder.svg</file>
+        <file>RecipeWindow.qml</file>
     </qresource>
 </RCC>

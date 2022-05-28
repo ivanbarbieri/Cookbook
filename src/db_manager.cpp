@@ -29,14 +29,14 @@ bool DbManager::isOpen() const
 
 bool DbManager::createTables()
 {
-    QVector <QString> queries {
+    const QVector <QString> queries {
         "CREATE TABLE IF NOT EXISTS recipes ("
         "recipeId INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "recipeTitle TEXT,"
+        "title TEXT,"
         "pathImage TEXT,"
         "preparationTime INTEGER,"
         "cookingTime INTEGER,"
-        "yield TEXT,"
+        "yield INTEGER,"
         "instructions TEXT)"
         ,
         "CREATE TABLE IF NOT EXISTS ingredients ("
@@ -56,7 +56,7 @@ bool DbManager::createTables()
     };
 
     QSqlQuery query(QSqlDatabase::database("cookbook"));
-    for (auto q :  queries) {
+    for (const auto &q :  queries) {
         query.prepare(q);
         if (!query.exec()) {
             qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
