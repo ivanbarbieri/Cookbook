@@ -1,29 +1,34 @@
-#ifndef SEARCH_RECIPE_H
-#define SEARCH_RECIPE_H
-#include "show_recipe.h"
+#ifndef SEARCHRECIPE_H
+#define SEARCHRECIPE_H
 
-#include <QAbstractListModel>
-#include <QSqlQuery>
-#include <QSqlError>
+#include "recipes_list.h"
 
-class SearchRecipe : public QAbstractListModel {
+#include <QStringListModel>
+#include <QtQml/qqml.h>
+
+class SearchRecipe : public QStringListModel {
     Q_OBJECT
+    QML_NAMED_ELEMENT(CppSearchRecipe)
 
 public:
-    explicit SearchRecipe(QObject *parent = nullptr, ShowRecipe *sr = nullptr);
-    ~SearchRecipe();
+    enum Roles {
+        IngredientRole = Qt::UserRole
+    };
+
+    explicit SearchRecipe(RecipesList *rl, QObject *parent = nullptr);
+
     int rowCount(const QModelIndex& parent) const override;
     QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override;
-    QHash<int, QByteArray> roleNames() const override;
 
 public slots:
     void setIngredientAt(int index, const QString &ingredient);
     void appendIngredient();
     void removeIngredientAt(int index);
-    void search(const QString &recipeTitle);
+    void search(const QString &title);
 
 private:
-    ShowRecipe *showRecipe;
-    QVector<QString> mIngredients;
+    RecipesList *recipesList;
+    QList<QString> mIngredients;
 };
-#endif // SEARCH_RECIPE_H
+
+#endif // SEARCHRECIPE_H
