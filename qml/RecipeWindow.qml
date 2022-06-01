@@ -20,6 +20,7 @@ Window {
     ListView {
         property int currentIndex: 0
         property int prevIndex: 0
+
         id: tabBar
         height: 25
         anchors {left: parent.left; right: parent.right; top: parent.top}
@@ -30,24 +31,28 @@ Window {
             height: 25
             width: 100
             color: Colors.darkGrey
+
             Text {
                 height: parent.height
                 width: parent.width * 0.75
                 anchors {left: parent.left; right: removeTab.left; top: parent.top; bottom: parent.bottom; margins: 2}
                 text: _selectedRecipes.recipe(index).title ?? ""
                 color: Colors.white
-                  MouseArea {
+
+                MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        if (tabBar.prevIndex >= 0)
+                        if (tabBar.prevIndex >= 0) {
                             tabBar.itemAtIndex(tabBar.prevIndex).color = Colors.darkGrey
+                            tabBar.prevIndex = index
+                        }
                         tabBar.currentIndex = index
                         tabBar.itemAtIndex(index).color = Colors.lightGrey
-                        tabBar.prevIndex = tabBar.currentIndex
                         listview.positionViewAtIndex(index, ListView.Contain)
                     }
                 }
             }
+
             Button {
                 id: removeTab
                 height: parent.height
@@ -58,6 +63,9 @@ Window {
                     _selectedRecipes.removeRecipe(index)
                     if (listview.count <= 0)
                         root.visible = false
+
+                    if (tabBar.prevIndex >= listview.count)
+                            tabBar.prevIndex = 0
                 }
             }
         }
