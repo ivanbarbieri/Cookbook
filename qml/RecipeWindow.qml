@@ -42,7 +42,11 @@ Window {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
+<<<<<<< HEAD
                         if (tabBar.prevIndex >= 0) {
+=======
+                        if (tabBar.prevIndex && tabBar.prevIndex >= 0) {
+>>>>>>> f0896d403ec431adb2ec0ea6679b6a00092e69ad
                             tabBar.itemAtIndex(tabBar.prevIndex).color = Colors.darkGrey
                             tabBar.prevIndex = index
                         }
