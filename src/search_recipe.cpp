@@ -1,12 +1,13 @@
 #include "search_recipe.h"
+#include "recipes_list.h"
 
-SearchRecipe::SearchRecipe(QObject *parent, ShowRecipe *sr) : QAbstractListModel(parent)
-{
-    showRecipe = sr;
-}
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QQmlEngine>
 
-SearchRecipe::~SearchRecipe()
+SearchRecipe::SearchRecipe(RecipesList *rl, QObject *parent) : QStringListModel(parent)
 {
+    recipesList = rl;
 }
 
 int SearchRecipe::rowCount(const QModelIndex& parent) const
@@ -17,19 +18,13 @@ int SearchRecipe::rowCount(const QModelIndex& parent) const
     return mIngredients.count();
 }
 
-QVariant SearchRecipe::data( const QModelIndex& index, int role) const
+QVariant SearchRecipe::data(const QModelIndex& index, int role) const
 {
     Q_UNUSED(role)
     if (!index.isValid())
         return QVariant();
 
     return mIngredients.at(index.row());
-}
-
-QHash<int, QByteArray> SearchRecipe::roleNames() const
-{
-    static QHash<int, QByteArray> names {};
-    return names;
 }
 
 void SearchRecipe::setIngredientAt(int index, const QString &ingredient)
@@ -54,16 +49,17 @@ void SearchRecipe::removeIngredientAt(int index)
     }
 }
 
-void SearchRecipe::search(const QString &recipeTitle)
+void SearchRecipe::search(const QString &title)
 {
     QSqlDatabase db = QSqlDatabase::database("cookbook");
     QSqlQuery query(db);
     QString strQuery;
-    showRecipe->removeAllRecipes();
 
-    strQuery.append("SELECT recipeId, pathImage, recipeTitle, preparationTime, cookingTime, yield, instructions "
+    recipesList->removeAllRecipes();
+
+    strQuery.append("SELECT recipeId, pathImage, title, preparationTime, cookingTime, yield, instructions "
                     "FROM recipes "
-                    "WHERE recipeTitle LIKE ? ");
+                    "WHERE title LIKE ? ");
     if (not mIngredients.isEmpty()) {
         strQuery.append("AND recipeId IN (SELECT recipeId "
                         "FROM recipes_ingredients AS ri "
@@ -72,24 +68,25 @@ void SearchRecipe::search(const QString &recipeTitle)
             strQuery.append("  AND EXISTS (SELECT recipeId FROM recipes_ingredients NATURAL JOIN ingredients WHERE ri.recipeId=recipeId AND IngredientName LIKE ? ) ");
         strQuery.append(") ");
     }
-    strQuery.append(" ORDER BY recipeTitle");
+    strQuery.append(" ORDER BY title");
 
     query.prepare(strQuery);
-    query.addBindValue("%" + recipeTitle.simplified() + "%");
+    query.addBindValue("%" + title.simplified() + "%");
     for (int i = 0; i < mIngredients.size(); i++)
         query.addBindValue("%" + mIngredients[i].simplified() + "%");
-    query.exec();
     if(!query.exec())
         qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
 
     while (query.next()) {
-        showRecipe->appendRecipe({query.value(0).toInt(),
-                                  query.value(1).toString(),
-                                  query.value(2).toString(),
-                                  query.value(3).toString(),
-                                  query.value(4).toString(),
-                                  query.value(5).toString(),
-                                  query.value(6).toString()
-                                 });
+        Recipe *r = new Recipe(query.value(0).toInt(),  // recipeId
+                    query.value(1).toString(),          // pathImage
+                    query.value(2).toString(),          // title
+                    query.value(3).toInt(),             // preparationTime
+                    query.value(4).toInt(),             // cookingTime
+                    query.value(5).toInt(),             // yield
+                    query.value(6).toString(),          // instructions
+                    QList<Recipe::Ingredient*>());      // (empty) ingredientsList
+        QQmlEngine::setObjectOwnership(r, QQmlEngine::CppOwnership);
+        recipesList->appendRecipe(r);
     }
 }
