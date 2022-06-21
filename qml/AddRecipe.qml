@@ -1,21 +1,26 @@
 import Constants
 import CustomModules
+import Cookbook
 
 import QtQuick
 import QtQuick.Controls
 import Qt.labs.platform
-
+import QtQuick.Dialogs
 
 Rectangle {
     id: root
     color: Colors.darkGrey
+
+    CppRecipe {
+        id: _recipe
+    }
 
     Image {
         id: recipeImage
         width: Math.min(parent.width, parent.height) * 0.3
         height: width
         fillMode: Image.PreserveAspectFit
-        source: "images/placeholder.png"
+        source: _recipe.pathImage  !== "" ? _recipe.pathImage : "qrc:icons/placeholder.svg"
 
         anchors {
             left: parent.left
@@ -37,16 +42,15 @@ Rectangle {
     FileDialog {
         id: fileDialog
         title: "Please choose an image"
-        nameFilters: [ "Image files (*.png *.jpeg *.jpg)" ]
+        nameFilters: [ "Image files (*.bmp *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.xpm *.tiff *.svg)" ]
 
         onAccepted: {
-            recipeImage.source = fileDialog.currentFile
+            _recipe.pathImage = fileDialog.currentFile
         }
     }
 
     Item {
         id: box1
-
         anchors {
             left: recipeImage.right
             right: parent.right
@@ -57,7 +61,7 @@ Rectangle {
         }
 
         CustomTextField {
-            id: recipeTitle
+            id: title
             placeholderText: qsTr("Recipe title")
             height:  35 + 0.3 * parent.height
             font.pixelSize: 15 + height * 0.05
@@ -67,6 +71,7 @@ Rectangle {
                 right: parent.right
                 verticalCenter: parent.verticalCenter
             }
+            onEditingFinished: _recipe.title = text
         }
     }
 
@@ -85,7 +90,7 @@ Rectangle {
         CustomTextField {
             id: preparationTime
             placeholderText: qsTr("Preparation time")
-            width: recipeTitle.width * 0.3
+            width: title.width * 0.3
             height: 35 + 0.15 * parent.height
             font.pixelSize: 15 + height * 0.05
             wrapMode: Text.Wrap
@@ -94,12 +99,15 @@ Rectangle {
                 left: parent.left
                 verticalCenter: parent.verticalCenter
             }
+
+            validator: RegularExpressionValidator { regularExpression: /\d*/ }
+            onEditingFinished: _recipe.preparationTime = text ? text : 0
         }
 
         CustomTextField {
             id: cookingTime
             placeholderText: qsTr("Cooking time")
-            width: (recipeTitle.width * 0.3)
+            width: (title.width * 0.3)
             height: preparationTime.height
             font.pixelSize: 15 + height * 0.05
 
@@ -108,15 +116,17 @@ Rectangle {
                 leftMargin: Constants.margin
                 verticalCenter: parent.verticalCenter
             }
+
+            validator: RegularExpressionValidator { regularExpression: /\d*/ }
+            onEditingFinished: _recipe.cookingTime = text ? text : 0
         }
 
         CustomTextField {
             id: yield
             placeholderText: qsTr("Yield")
-            width: (recipeTitle.width * 0.3)
+            width: (title.width * 0.3)
             height: preparationTime.height
             font.pixelSize: 15 + height * 0.05
-
 
             anchors {
                 left: cookingTime.right
@@ -125,6 +135,8 @@ Rectangle {
                 verticalCenter: parent.verticalCenter
             }
 
+            validator: RegularExpressionValidator { regularExpression: /\d*/ }
+            onEditingFinished: _recipe.yield = text ? text : 0
         }
     }
 /*
@@ -137,7 +149,7 @@ Rectangle {
 
         anchors {
             left: parent.left
-            right: instruction.left
+            right: instructions.left
             top: recipeImage.bottom
             leftMargin: Constants.margin
             rightMargin: Constants.margin + scrollBar.width
@@ -145,7 +157,7 @@ Rectangle {
             bottomMargin: 2.5
         }
 
-        onClicked: _addRecipe.appendIngredient()
+        onClicked: _recipe.appendIngredient()
     }
 
     ListView {
@@ -155,21 +167,20 @@ Rectangle {
 
         anchors {
             left: parent.left
-            right: instruction.left
+            right: instructions.left
             top: addIngredientButton.bottom
             bottom: addRecipeButton.top
             leftMargin: Constants.margin
             rightMargin: Constants.margin
             topMargin: 2.5
             bottomMargin: Constants.margin
-
         }
 
         ScrollBar.vertical: CustomScrollBar {
             id: scrollBar
         }
 
-        model: _addRecipe
+        model: _recipe
 
         delegate: Item {
             anchors.rightMargin: 5
@@ -180,18 +191,17 @@ Rectangle {
                 id: ingredientForm
 
                 anchors {
-                  left: parent.left
-                  right: removeButton.left
-                  top:  parent.top
-                  bottom: parent.bottom
-                  rightMargin: 5
+                    left: parent.left
+                    right: removeButton.left
+                    top:  parent.top
+                    bottom: parent.bottom
+                    rightMargin: 5
                 }
 
                 CustomTextField {
                     id: ingredient
                     placeholderText: qsTr("Ingredient")
-                    width: parent.width/2
-                    height: 23 * text.lineCount
+                    width: ingredientForm.width / 2
                     horizontalAlignment: Text.AlignLeft
 
                     anchors {
@@ -200,15 +210,14 @@ Rectangle {
                         verticalCenter: parent.verticalCenter
                     }
 
-//                    text: _addRecipe.name
-                    onEditingFinished: _addRecipe.setNameAt(index, text)
+
+                    onEditingFinished: _recipe.setNameAt(index, text)
                 }
 
                 CustomTextField {
                     id: quantity
                     placeholderText: qsTr("Quantity")
-                    width: ingredient.width
-                    height: 23 * text.lineCount
+                    width: ingredientForm.width / 2
                     horizontalAlignment: Text.AlignLeft
 
                     anchors {
@@ -218,8 +227,7 @@ Rectangle {
                         verticalCenter: parent.verticalCenter
                     }
 
-//                    text: _addRecipe.quantity
-                    onEditingFinished: _addRecipe.setQuantityAt(index, text)
+                    onEditingFinished: _recipe.setQuantityAt(index, text)
                 }
             }
 
@@ -228,7 +236,7 @@ Rectangle {
                 width: 23
                 height: width
                 text: "\u2212"
-                font.pointSize: 15
+                font.pixelSize: 15
                 bottomPadding: 10
 
                 anchors {
@@ -237,34 +245,13 @@ Rectangle {
                     verticalCenter: parent.verticalCenter
                 }
 
-                onClicked: _addRecipe.removeIngredientAt(index);
+                onClicked: _recipe.removeIngredientAt(index);
             }
         }
     }
 
-    CustomButton {
-        id: addRecipeButton
-        text: "Add recipe"
-        width: parent.width * 0.3
-        height: 20
-        font.pointSize: 15
-
-        anchors {
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
-            bottomMargin: Constants.margin
-        }
-
-        onClicked: _addRecipe.addRecipe(recipeImage.source.toString(),
-                                          recipeTitle.text.toString(),
-                                          preparationTime.text.toString(),
-                                          cookingTime.text.toString(),
-                                          yield.text.toString(),
-                                          instructionText.text.toString())
-    }
-
     ScrollView {
-        id: instruction
+        id: instructions
         width: (parent.width + anchors.rightMargin + anchors.leftMargin)/2
         clip: true
 
@@ -278,9 +265,8 @@ Rectangle {
         }
 
         TextArea {
-            id: instructionText
+            id: instructionsText
             placeholderText: qsTr("Instructions")
-            color: Colors.white
             selectionColor: Colors.darkGrey
             selectedTextColor: Colors.white
             wrapMode: Text.Wrap
@@ -289,6 +275,25 @@ Rectangle {
                 color: Colors.grey
                 radius: Constants.radius
             }
+
+            onEditingFinished: _recipe.instructions = text
         }
     }
+
+    CustomButton {
+        id: addRecipeButton
+        text: "Add recipe"
+        width: parent.width * 0.3
+        height: 20
+        font.pixelSize: 15
+
+        anchors {
+            bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
+            bottomMargin: Constants.margin
+        }
+
+        onClicked: _recipe.addRecipe()
+    }
+
 }

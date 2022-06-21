@@ -1,11 +1,10 @@
 #include "db_manager.h"
-#include "add_recipe.h"
-#include "show_recipe.h"
+#include "recipe.h"
 #include "search_recipe.h"
+#include "recipes_list.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
 
 int main(int argc, char *argv[])
 {
@@ -24,17 +23,19 @@ int main(int argc, char *argv[])
     }
 
     QGuiApplication app(argc, argv);
-
-    AddRecipe addRecipe;
-    ShowRecipe showRecipe;
-    SearchRecipe searchRecipe(nullptr, &showRecipe);
+    RecipesList selectedRecipes;
+    RecipesList recipesList;
+    SearchRecipe searchRecipe(&recipesList);
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("_showRecipe", &showRecipe);
-    engine.rootContext()->setContextProperty("_searchRecipe", &searchRecipe);
-    engine.rootContext()->setContextProperty("_addRecipe", &addRecipe);
-    engine.addImportPath(":/imports");
-    engine.load(QUrl(QLatin1String("qrc:/main.qml")));
+    engine.setInitialProperties({
+        {"_recipesList", QVariant::fromValue(&recipesList)},
+        {"_searchRecipe", QVariant::fromValue(&searchRecipe)},
+        {"_selectedRecipes", QVariant::fromValue(&selectedRecipes)}
+    });
+
+    engine.addImportPath("qrc:/imports");
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     return app.exec();
 }
