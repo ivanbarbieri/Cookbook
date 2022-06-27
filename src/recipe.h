@@ -83,6 +83,7 @@ public slots:
     // Add recipe to database
     void addRecipe();
     void updateRecipe();
+    bool deleteRecipe();
     Recipe *clone();
     bool isEmpty();
 

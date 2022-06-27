@@ -20,7 +20,7 @@ Window {
     ListView {
         property int currentIndex: 0
         property int prevIndex: 0
-
+        
         id: tabBar
         height: 25
         anchors {left: parent.left; right: parent.right; top: parent.top}
@@ -63,7 +63,7 @@ Window {
                     _selectedRecipes.removeRecipe(index)
                     if (listview.count <= 0)
                         root.visible = false
-
+                        
                     if (tabBar.prevIndex >= listview.count)
                             tabBar.prevIndex = 0
                 }
@@ -492,13 +492,22 @@ Window {
                         instructionsText.text = recipe.p_instructions
                     }
                 }
+
+                CustomButton {
+                    text: "Delete"
+                    Layout.fillWidth: true
+                    font.pixelSize: 15
+                    visible: editable
+
+                    onClicked: {
+                        if (recipe.p_recipe.deleteRecipe()) {
+                            _selectedRecipes.removeRecipe(index)
+                            if (listview.count <= 0)
+                                root.visible = false
+                        }
+                    }
+                }
             }
         }
     }
-    function returnIfTruthy(toCheck, returnThisIfNot) {
-        return toCheck ? toCheck : returnThisIfNot
-    }
 }
-
-
-

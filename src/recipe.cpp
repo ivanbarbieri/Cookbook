@@ -164,7 +164,7 @@ void Recipe::setIngredientAt(int index, const QString &newName, const QString &n
         setQuantityAt(index, newQuantity);
 }
 
-const  QString Recipe::name(int index) const
+const QString Recipe::name(int index) const
 {
     if (index >= 0 && index < mIngredientsList.size())
         return mIngredientsList.at(index)->name;
@@ -287,9 +287,9 @@ void Recipe::addRecipe()
 
 void Recipe::updateRecipe()
 {
-    qDebug("Recipe::updateRecipe");
     QSqlQuery query(QSqlDatabase::database("cookbook"));
-    query.prepare("UPDATE recipes SET title = :title,"
+    query.prepare("UPDATE recipes SET"
+                  " title = :title,"
                   " pathImage = :pathImage,"
                   " preparationTime = :preparationTime,"
                   " cookingTime = :cookingTime,"
@@ -312,8 +312,6 @@ void Recipe::updateRecipe()
         qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
 
     for (const auto& ingredient : mIngredientsList) {
-        qDebug() << "ingredient->name: " << ingredient->name;
-        qDebug() << "ingredient->quantity: " << ingredient->quantity;
         int idIngredient = -1;
         query.prepare("SELECT ingredientId FROM ingredients WHERE ingredientName LIKE :name");
         query.bindValue(":name", ingredient->name);
@@ -341,6 +339,19 @@ void Recipe::updateRecipe()
     }
 }
 
+bool Recipe::deleteRecipe()
+{
+    QSqlQuery query(QSqlDatabase::database("cookbook"));
+    query.prepare("DELETE FROM recipes WHERE recipeid = :recipeId");
+    query.bindValue(":recipeId", mRecipeId);
+    if (!query.exec()) {
+        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        return false;
+    }
+
+    return true;
+}
+
 Recipe *Recipe::clone()
 {
     auto ingrList = QList<Ingredient*>();
@@ -357,7 +368,6 @@ Recipe *Recipe::clone()
                         ingrList);
      QQmlEngine::setObjectOwnership(r, QQmlEngine::CppOwnership);
      return r;
-
 }
 
 bool Recipe::isEmpty()
