@@ -12,7 +12,8 @@ public:
     ~DbManager();
 
     bool isOpen() const;
-    bool createTables();
+    bool createTables() const;
+    bool createTriggers() const;
 
 private:
     QSqlDatabase db;

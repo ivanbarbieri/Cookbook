@@ -11,16 +11,8 @@ int main(int argc, char *argv[])
     const QString path = "cookbook.db";
 
     DbManager db(path);
-    if (db.isOpen()) {
-        if (db.createTables()) {
-            qDebug() << "Tables created";
-        } else {
-            exit(-1);
-        }
-    } else {
-        qDebug() << "Connection with database fail" << Qt::endl;
+    if (!db.isOpen() || !db.createTables() || !db.createTriggers())
         exit(-1);
-    }
 
     QGuiApplication app(argc, argv);
     RecipesList selectedRecipes;

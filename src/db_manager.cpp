@@ -9,11 +9,14 @@ DbManager::DbManager(const QString &path)
     db = QSqlDatabase::addDatabase("QSQLITE", "cookbook");
     db.setDatabaseName(path);
 
-    if (db.open()) {
-        qDebug() << "Database: connection ok";
-    } else {
+    if (!db.open()) {
         qDebug() << "Error: connection with database fail";
+        return;
     }
+
+    QSqlQuery query(db);
+    if (!query.exec("PRAGMA foreign_keys = ON"))
+        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
 }
 
 DbManager::~DbManager()
@@ -27,7 +30,7 @@ bool DbManager::isOpen() const
     return db.isOpen();
 }
 
-bool DbManager::createTables()
+bool DbManager::createTables() const
 {
     const QVector <QString> queries {
         "CREATE TABLE IF NOT EXISTS recipes ("
@@ -62,6 +65,22 @@ bool DbManager::createTables()
             qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
             return false;
         }
+    }
+    return true;
+}
+
+bool DbManager::createTriggers() const
+{
+    QSqlQuery query(db);
+    if (!query.exec("CREATE TRIGGER IF NOT EXISTS delete_unused_ingredients"
+                    " AFTER DELETE ON recipes_ingredients"
+                    " BEGIN"
+                    "   DELETE FROM ingredients"
+                    "   WHERE ingredientId NOT IN ("
+                    "       SELECT ingredientId FROM recipes_ingredients);"
+                    " END")) {
+        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        return false;
     }
     return true;
 }
