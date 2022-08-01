@@ -1,5 +1,5 @@
-import Constants 1.0
-import CustomModules 1.0
+import qml.imports.Constants
+import qml.imports.CustomModules
 import Cookbook
 
 import QtQuick

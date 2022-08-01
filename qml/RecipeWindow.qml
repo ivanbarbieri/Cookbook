@@ -1,5 +1,6 @@
-import Constants
-import CustomModules
+import qml.imports.Constants
+import qml.imports.CustomModules
+
 import Cookbook
 
 import QtQuick
@@ -85,7 +86,7 @@ Window {
 
             property var p_recipe: _selectedRecipes.recipe(index)
             property string p_title: p_recipe?.title ?? ""
-            property string p_pathImage: p_recipe?.pathImage ? p_recipe.pathImage : "qrc:icons/placeholder.svg"
+            property string p_pathImage: p_recipe?.pathImage ? p_recipe.pathImage : "icons/placeholder.svg"
             property int p_preparationTime: p_recipe?.preparationTime ?? 0
             property int p_cookingTime: p_recipe?.cookingTime ?? 0
             property int p_yield: p_recipe?.yield ?? 0

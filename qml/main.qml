@@ -1,9 +1,10 @@
-import Constants
-import CustomModules
+import qml.imports.Constants
+import qml.imports.CustomModules
+import Cookbook
 
 import QtQuick
-import QtQuick.Controls
 import Qt.labs.platform
+import QtQuick.Controls
 import QtQuick.Layouts
 
 QtObject {
@@ -95,3 +96,29 @@ QtObject {
         id: recipeWindow
     }
 }
+
+//import QtQuick
+//import QtQuick.Controls
+
+//ApplicationWindow {
+//    width: 400
+//    height: 400
+//    visible: true
+
+//    required property QtObject _recipesList
+//    required property QtObject _searchRecipe
+//    required property QtObject _selectedRecipes
+
+//    Button {
+//        id: button
+//        text: "A Special Button"
+//        background: Rectangle {
+//            implicitWidth: 100
+//            implicitHeight: 40
+//            color: button.down ? "#d6d6d6" : "#f6f6f6"
+//            border.color: "#26282a"
+//            border.width: 1
+//            radius: 4
+//        }
+//    }
+//}

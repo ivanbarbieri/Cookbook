@@ -1,4 +1,4 @@
-import Constants
+import qml.imports.Constants
 
 import QtQuick
 import QtQuick.Controls

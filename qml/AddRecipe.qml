@@ -1,5 +1,5 @@
-import Constants
-import CustomModules
+import qml.imports.Constants
+import qml.imports.CustomModules
 import Cookbook
 
 import QtQuick
@@ -20,7 +20,7 @@ Rectangle {
         width: Math.min(parent.width, parent.height) * 0.3
         height: width
         fillMode: Image.PreserveAspectFit
-        source: _recipe.pathImage  !== "" ? _recipe.pathImage : "qrc:icons/placeholder.svg"
+        source: _recipe.pathImage  !== "" ? _recipe.pathImage : "icons/placeholder.svg"
 
         anchors {
             left: parent.left

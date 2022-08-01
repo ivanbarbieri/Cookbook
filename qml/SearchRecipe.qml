@@ -1,5 +1,5 @@
-import Constants
-import CustomModules
+import qml.imports.Constants
+import qml.imports.CustomModules
 import Cookbook
 
 import QtQuick
@@ -69,7 +69,7 @@ Item {
                 }
 
                 Button {
-                    icon.source: "qrc:icons/placeholder.svg"
+                    icon.source: "icons/placeholder.svg"
 
                     anchors {
                         right: parent.right;
@@ -89,7 +89,7 @@ Item {
                 id: recipeImage
                 height: recipe.height
                 fillMode: Image.PreserveAspectFit
-                source: _recipesList.recipe(index).pathImage ? _recipesList.recipe(index).pathImage : "qrc:icons/placeholder.svg"
+                source: _recipesList.recipe(index).pathImage ? _recipesList.recipe(index).pathImage : "icons/placeholder.svg"
 
                 anchors {
                     left: parent.left
