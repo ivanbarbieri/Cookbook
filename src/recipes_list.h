@@ -3,7 +3,6 @@
 
 #include "recipe.h"
 
-#include <QObject>
 #include <QAbstractListModel>
 #include <QtQml/qqml.h>
 
@@ -17,7 +16,7 @@ public:
         RecipeRole = Qt::UserRole
     };
 
-    explicit RecipesList(QObject *parent = nullptr);
+    explicit RecipesList(const QString &connectionName, QObject *parent = nullptr);
     ~RecipesList();
 
     // QAbstractItemModel interface
@@ -35,6 +34,9 @@ public slots:
 signals:
     void rowInserted();
     void rowRemoved();
+
+public:
+    const QString mConnectionName;
 
 private:
     QList<Recipe*> mRecipes;

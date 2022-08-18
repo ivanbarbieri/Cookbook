@@ -4,7 +4,6 @@
 #include "recipes_list.h"
 
 #include <QStringListModel>
-#include <QtQml/qqml.h>
 
 class SearchRecipe : public QStringListModel {
     Q_OBJECT

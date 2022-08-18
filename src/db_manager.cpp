@@ -4,25 +4,46 @@
 #include <QSqlError>
 #include <QSqlQuery>
 
-DbManager::DbManager(const QString &path)
+DbManager::DbManager()
 {
-    db = QSqlDatabase::addDatabase("QSQLITE", "cookbook");
+}
+
+DbManager::DbManager(const QString &driver, const QString &connectionName, const QString &path)
+{
+    db = QSqlDatabase::addDatabase(driver, connectionName);
     db.setDatabaseName(path);
-
-    if (!db.open()) {
-        qDebug() << "Error: connection with database fail";
-        return;
-    }
-
-    QSqlQuery query(db);
-    if (!query.exec("PRAGMA foreign_keys = ON"))
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+    if (!db.open())
+        qFatal("Error: connection with database fail");
 }
 
 DbManager::~DbManager()
 {
     if (db.isOpen())
         db.close();
+}
+
+const QString DbManager::errorMessage(const QSqlQuery &query)
+{
+    return "SqLite error:" + query.lastError().text() +
+            "\nSqLite type code: " + QString::number(query.lastError().type());
+}
+
+bool DbManager::foreignKeys(bool active) const
+{
+    QSqlQuery query(db);
+    QString stmt;
+
+    if (active)
+        stmt = "PRAGMA foreign_keys = ON";
+    else
+        stmt = "PRAGMA foreign_keys = OFF";
+
+    if (!query.exec(stmt)) {
+        qWarning() << errorMessage(query);
+        return false;
+    }
+
+    return true;
 }
 
 bool DbManager::isOpen() const
@@ -58,11 +79,11 @@ bool DbManager::createTables() const
         "                                        ON UPDATE NO ACTION)"
     };
 
-    QSqlQuery query(QSqlDatabase::database("cookbook"));
+    QSqlQuery query(db);
     for (const auto &q :  queries) {
         query.prepare(q);
         if (!query.exec()) {
-            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+            qWarning() << errorMessage(query);
             return false;
         }
     }
@@ -79,7 +100,7 @@ bool DbManager::createTriggers() const
                     "   WHERE ingredientId NOT IN ("
                     "       SELECT ingredientId FROM recipes_ingredients);"
                     " END")) {
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << errorMessage(query);
         return false;
     }
     return true;

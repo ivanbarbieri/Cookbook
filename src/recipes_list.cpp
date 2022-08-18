@@ -1,10 +1,7 @@
 #include "recipes_list.h"
 
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QVariant>
-
-RecipesList::RecipesList(QObject *parent) : QAbstractListModel(parent)
+RecipesList::RecipesList(const QString &connectionName, QObject *parent) : QAbstractListModel(parent),
+    mConnectionName(connectionName)
 {
 }
 

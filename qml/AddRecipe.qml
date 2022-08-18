@@ -13,6 +13,7 @@ Rectangle {
 
     CppRecipe {
         id: _recipe
+        Component.onCompleted: _recipe.setConnectionName("cookbook")
     }
 
     Image {
@@ -295,5 +296,4 @@ Rectangle {
 
         onClicked: _recipe.addRecipe()
     }
-
 }

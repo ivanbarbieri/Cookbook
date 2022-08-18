@@ -1,8 +1,8 @@
+#include "db_manager.h"
 #include "search_recipe.h"
 #include "recipes_list.h"
 
 #include <QSqlQuery>
-#include <QSqlError>
 #include <QQmlEngine>
 
 SearchRecipe::SearchRecipe(RecipesList *rl, QObject *parent) : QStringListModel(parent)
@@ -51,7 +51,7 @@ void SearchRecipe::removeIngredientAt(int index)
 
 void SearchRecipe::search(const QString &title)
 {
-    QSqlDatabase db = QSqlDatabase::database("cookbook");
+    QSqlDatabase db = QSqlDatabase::database(recipesList->mConnectionName);
     QSqlQuery query(db);
     QString strQuery;
 
@@ -75,10 +75,11 @@ void SearchRecipe::search(const QString &title)
     for (int i = 0; i < mIngredients.size(); i++)
         query.addBindValue("%" + mIngredients[i].simplified() + "%");
     if(!query.exec())
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << DbManager::errorMessage(query);
 
     while (query.next()) {
-        Recipe *r = new Recipe(query.value(0).toInt(),  // recipeId
+        Recipe *r = new Recipe(recipesList->mConnectionName,
+                    query.value(0).toInt(),             // recipeId
                     query.value(1).toString(),          // pathImage
                     query.value(2).toString(),          // title
                     query.value(3).toInt(),             // preparationTime

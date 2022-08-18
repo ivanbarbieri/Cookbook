@@ -30,7 +30,7 @@ public:
     };
 
     explicit Recipe(QObject *parent = nullptr);
-    Recipe(int recipeId, const QString &pathImage, const QString &title,
+    Recipe(const QString &connectionName, int recipeId, const QString &pathImage, const QString &title,
            int preparationTime, int cookingTime, int yield, const QString &instructions,
            const QList<Ingredient*> &ingredientsList, QObject *parent = nullptr);
     ~Recipe();
@@ -50,26 +50,27 @@ signals:
 public slots:
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int recipeId() const;
-   void setRecipeId(int newRecipeId);
+    void setRecipeId(int newRecipeId);
 
-   const QString pathImage() const;
-   void setPathImage(const QString &newTitle);
+    const QString pathImage() const;
+    void setPathImage(const QString &newTitle);
 
-   const QString title() const;
-   void setTitle(const QString &newTitle);
+    const QString title() const;
+    void setTitle(const QString &newTitle);
 
-   int preparationTime() const;
-   void setPreparationTime(const int newPreparationTime);
+    int preparationTime() const;
+    void setPreparationTime(const int newPreparationTime);
 
-   int cookingTime() const;
-   void setCookingTime(const int newCookingTime);
+    int cookingTime() const;
+    void setCookingTime(const int newCookingTime);
 
-   int yield() const;
-   void setYield(const int newYield);
+    int yield() const;
+    void setYield(const int newYield);
 
-   const QString instructions() const;
-   void setInstructions(const QString &newInstructions);
+    const QString instructions() const;
+    void setInstructions(const QString &newInstructions);
 
+    const QList<Ingredient*> ingredientsList() const;
     const QString name(int index) const;
     void setNameAt(int index, const QString &newName);
     const QString quantity(int index) const;
@@ -80,12 +81,16 @@ public slots:
     void removeAllIngredients();
     void getIngredients();
 
+    void setConnectionName(const QString &newConnectionName = "");
     // Add recipe to database
     void addRecipe();
     void updateRecipe();
     bool deleteRecipe();
     Recipe *clone();
     bool isEmpty();
+
+public:
+    QString mConnectionName;
 
 private:
     int mRecipeId = -1;

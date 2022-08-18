@@ -1,7 +1,7 @@
+#include "db_manager.h"
 #include "recipe.h"
 
 #include <QSqlQuery>
-#include <QSqlError>
 #include <QQmlEngine>
 
 Recipe::Recipe(QObject *parent) : QAbstractListModel(parent)
@@ -12,7 +12,8 @@ Recipe::~Recipe()
     removeAllIngredients();
 }
 
-Recipe::Recipe(int recipeId,
+Recipe::Recipe(const QString &connectionName,
+               int recipeId,
                const QString &pathImage,
                const QString &title,
                int preparationTime,
@@ -22,6 +23,7 @@ Recipe::Recipe(int recipeId,
                const QList<Recipe::Ingredient*> &ingredientsList,
                QObject *parent
                ) : QAbstractListModel(parent),
+    mConnectionName(connectionName),
     mRecipeId(recipeId),
     mPathImage(pathImage),
     mTitle(title),
@@ -164,6 +166,11 @@ void Recipe::setIngredientAt(int index, const QString &newName, const QString &n
         setQuantityAt(index, newQuantity);
 }
 
+const QList<Recipe::Ingredient*> Recipe::ingredientsList() const
+{
+    return mIngredientsList;
+}
+
 const QString Recipe::name(int index) const
 {
     if (index >= 0 && index < mIngredientsList.size())
@@ -222,7 +229,7 @@ void Recipe::getIngredients()
     if (!mIngredientsList.empty())
         return;
 
-    QSqlDatabase db = QSqlDatabase::database("cookbook");
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 //    db.transaction();
     QSqlQuery query(db);
     query.prepare("SELECT ingredientName, quantity "
@@ -230,16 +237,23 @@ void Recipe::getIngredients()
                   "WHERE recipeId = (:recipeId)");
     query.bindValue(":recipeId", recipeId());
     if(!query.exec())
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << DbManager::errorMessage(query);
 
     while (query.next()) {
         appendIngredient(query.value(0).toString(), query.value(1).toString());
     }
 }
 
+void Recipe::setConnectionName(const QString &newConnectionName)
+{
+    if (mConnectionName == newConnectionName)
+        return;
+    mConnectionName = newConnectionName;
+}
+
 void Recipe::addRecipe()
 {
-    QSqlDatabase db = QSqlDatabase::database("cookbook");;
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
 //    db.transaction();
     QSqlQuery query(db);
     query.prepare("INSERT INTO recipes (title, pathImage, preparationTime, cookingTime, yield, instructions)"
@@ -251,23 +265,23 @@ void Recipe::addRecipe()
     query.bindValue(":yield", mYield);
     query.bindValue(":instructions", mInstructions);
     if (!query.exec())
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << DbManager::errorMessage(query);
 
-    int recipeId = query.lastInsertId().toInt();
+    mRecipeId = query.lastInsertId().toInt();
 
     for (const auto& ingredient : mIngredientsList) {
         int idIngredient = -1;
         query.prepare("SELECT ingredientId FROM ingredients WHERE ingredientName LIKE :name");
         query.bindValue(":name", ingredient->name);
         if (!query.exec()) {
-            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+            qWarning() << DbManager::errorMessage(query);
         } else if (query.next()) {
             idIngredient = query.value(0).toInt();
         } else {
             query.prepare("INSERT INTO ingredients (ingredientName) VALUES (:ingredientName)");
             query.bindValue(":ingredientName", ingredient->name);
             if (!query.exec()) {
-               qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+               qWarning() << DbManager::errorMessage(query);
             } else {
                 idIngredient = query.lastInsertId().toInt();
             }
@@ -275,11 +289,11 @@ void Recipe::addRecipe()
 
         query.prepare("INSERT INTO recipes_ingredients (recipeId, ingredientId, quantity)"
                       "VALUES (:recipeId, :ingredientId, :quantity)");
-        query.bindValue(":recipeId", recipeId);
+        query.bindValue(":recipeId", mRecipeId);
         query.bindValue(":ingredientId", idIngredient);
         query.bindValue(":quantity", ingredient->quantity);
         if (!query.exec())
-            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+            qWarning() << DbManager::errorMessage(query);
     }
 
 //    db.commit();
@@ -287,7 +301,7 @@ void Recipe::addRecipe()
 
 void Recipe::updateRecipe()
 {
-    QSqlQuery query(QSqlDatabase::database("cookbook"));
+    QSqlQuery query(QSqlDatabase::database(mConnectionName));
     query.prepare("UPDATE recipes SET"
                   " title = :title,"
                   " pathImage = :pathImage,"
@@ -304,26 +318,26 @@ void Recipe::updateRecipe()
     query.bindValue(":instructions", mInstructions);
     query.bindValue(":recipeId", mRecipeId);
     if (!query.exec())
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << DbManager::errorMessage(query);
 
     query.prepare("DELETE FROM recipes_ingredients WHERE recipeId = :recipeId");
     query.bindValue(":recipeId", mRecipeId);
     if (!query.exec())
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << DbManager::errorMessage(query);
 
     for (const auto& ingredient : mIngredientsList) {
         int idIngredient = -1;
         query.prepare("SELECT ingredientId FROM ingredients WHERE ingredientName LIKE :name");
         query.bindValue(":name", ingredient->name);
         if (!query.exec()) {
-            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+            qWarning() << DbManager::errorMessage(query);
         } else if (query.next()) {
             idIngredient = query.value(0).toInt();
         } else {
             query.prepare("INSERT INTO ingredients (ingredientName) VALUES (:ingredientName)");
             query.bindValue(":ingredientName", ingredient->name);
             if (!query.exec()) {
-               qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+               qWarning() << DbManager::errorMessage(query);
             } else {
                 idIngredient = query.lastInsertId().toInt();
             }
@@ -335,17 +349,17 @@ void Recipe::updateRecipe()
         query.bindValue(":ingredientId", idIngredient);
         query.bindValue(":quantity", ingredient->quantity);
         if (!query.exec())
-            qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+            qWarning() << DbManager::errorMessage(query);
     }
 }
 
 bool Recipe::deleteRecipe()
 {
-    QSqlQuery query(QSqlDatabase::database("cookbook"));
+    QSqlQuery query(QSqlDatabase::database(mConnectionName));
     query.prepare("DELETE FROM recipes WHERE recipeid = :recipeId");
     query.bindValue(":recipeId", mRecipeId);
     if (!query.exec()) {
-        qDebug() << "SqLite error:" << query.lastError().text() << ", SqLite type code:" << query.lastError().type() << Qt::endl;
+        qWarning() << DbManager::errorMessage(query);
         return false;
     }
 
@@ -358,7 +372,8 @@ Recipe *Recipe::clone()
     for (const auto &x : mIngredientsList)
         ingrList.append(new Ingredient{x->name, x->quantity});
 
-    Recipe * r = new Recipe(recipeId(),
+    Recipe * r = new Recipe(mConnectionName,
+                        recipeId(),
                         pathImage(),
                         title(),
                         preparationTime(),
