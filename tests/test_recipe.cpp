@@ -5,15 +5,11 @@
 #include <QSqlQueryModel>
 #include <QSqlQuery>
 #include <QScopedPointer>
-#include <QListIterator>
 #include <QFile>
 
 class TestRecipe : public QObject
 {
     Q_OBJECT
-
-private:
-    void populateDb();
 
 private slots:
     void initTestCase();
@@ -30,14 +26,14 @@ private:
     const QString mConnectionName{"testDatabase"};
     const QString mPath{"testDatabase.db"};
 
-    QSharedPointer<DbManager> db;
+    QScopedPointer<DbManager> db;
 };
 
 
 
 void TestRecipe::initTestCase()
 {
-    db = QSharedPointer<DbManager>{new DbManager{mDriver, mConnectionName, mPath}};
+    db.reset(new DbManager{mDriver, mConnectionName, mPath});
     QVERIFY(db->isOpen());
     QVERIFY(db->createTables());
     QVERIFY(db->createTriggers());
@@ -45,7 +41,7 @@ void TestRecipe::initTestCase()
 
 void TestRecipe::cleanupTestCase()
 {
-    db.clear();
+    db->close();
     QVERIFY(QFile::remove(mPath));
 }
 

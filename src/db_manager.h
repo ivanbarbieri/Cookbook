@@ -12,6 +12,7 @@ public:
     virtual ~DbManager();
 
     static const QString errorMessage(const QSqlQuery &query);
+    void close();
     bool isOpen() const;
     bool foreignKeys(bool active = true) const;
     bool createTables() const;

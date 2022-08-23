@@ -18,8 +18,7 @@ DbManager::DbManager(const QString &driver, const QString &connectionName, const
 
 DbManager::~DbManager()
 {
-    if (db.isOpen())
-        db.close();
+    close();
 }
 
 const QString DbManager::errorMessage(const QSqlQuery &query)
@@ -44,6 +43,12 @@ bool DbManager::foreignKeys(bool active) const
     }
 
     return true;
+}
+
+void DbManager::close()
+{
+    if (db.isOpen())
+        db.close();
 }
 
 bool DbManager::isOpen() const
