@@ -294,6 +294,33 @@ Rectangle {
             bottomMargin: Constants.margin
         }
 
-        onClicked: _recipe.addRecipe()
+        onClicked: {
+            if (_recipe.addRecipe()) {
+                toolTip_addRecipe.text = "Recipe added :)"
+                toolTip_addRecipe.text.color = "green"
+                toolTip_addRecipe.background.border.color = "green"
+            } else {
+                toolTip_addRecipe.text = "Failed to add recipe :("
+                toolTip_addRecipe.text.color = "red"
+                toolTip_addRecipe.background.border.color = "red"
+            }
+            toolTip_addRecipe.open()
+        }
+
+        ToolTip {
+            id: toolTip_addRecipe
+            timeout: 1500
+
+            contentItem: Text {
+                text: toolTip_addRecipe.text
+            }
+
+            background: Rectangle {
+                width: toolTip_addRecipe.text.width
+                color: Colors.grey
+                border.width: 3
+                radius: Constants.radius
+            }
+        }
     }
 }

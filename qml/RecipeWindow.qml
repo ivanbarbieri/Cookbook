@@ -449,6 +449,22 @@ Window {
                             }
                         }
                     }
+
+                    ToolTip {
+                        id: toolTip_update
+                        timeout: 1500
+
+                        contentItem: Text {
+                            text: toolTip_update.text
+                        }
+
+                        background: Rectangle {
+                            width: toolTip_update.text.width
+                            border.width: 3
+                            radius: Constants.radius
+                            color: Colors.lightGrey
+                        }
+                    }
                 }
 
                 CustomButton {
@@ -466,7 +482,17 @@ Window {
                         recipe.p_recipe.setYield(yield.text)
                         recipe.p_recipe.setInstructions(instructionsText.text)
                         rowButtons.ingredients = []
-                        recipe.p_recipe.updateRecipe()
+
+                        if (recipe.p_recipe.updateRecipe()) {
+                            toolTip_update.text = "Successful update :)"
+                            toolTip_update.text.color = Colors.green
+                            toolTip_update.background.border.color = Colors.green
+                        } else {
+                            toolTip_update.text = "Update failed :("
+                            toolTip_update.text.color = Colors.red
+                            toolTip_update.background.border.color = Colors.red
+                        }
+                        toolTip_update.open()
                     }
                 }
 
@@ -499,7 +525,6 @@ Window {
                     Layout.fillWidth: true
                     font.pixelSize: 15
                     visible: editable
-
                     onClicked: {
                         if (recipe.p_recipe.deleteRecipe()) {
                             _selectedRecipes.removeRecipe(index)
