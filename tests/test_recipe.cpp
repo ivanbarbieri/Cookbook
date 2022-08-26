@@ -49,7 +49,7 @@ void TestRecipe::getIngredients_empty()
 {
     Recipe rSample{mConnectionName, -1, "path/image", "0 ingr", 0, 0, 0, "instructions",
                 QList<Recipe::Ingredient*>()};
-    rSample.addRecipe();
+    QVERIFY(rSample.addRecipe());
     Recipe r;
     r.setConnectionName(mConnectionName);
     r.setRecipeId(rSample.recipeId());
@@ -64,7 +64,7 @@ void TestRecipe::getIngredients()
                                                new Recipe::Ingredient{"Flour", ""},
                                                new Recipe::Ingredient{"Water", ""}
                                            })};
-    rSample.addRecipe();
+    QVERIFY(rSample.addRecipe());
     Recipe r;
     r.setConnectionName(mConnectionName);
     r.setRecipeId(rSample.recipeId());
@@ -80,7 +80,7 @@ void TestRecipe::updateRecipe()
 {
     Recipe r;
     r.setConnectionName(mConnectionName);
-    r.addRecipe();
+    QVERIFY(r.addRecipe());
 
     r.setPathImage("newPath");
     r.setTitle("newTitle");
@@ -89,7 +89,7 @@ void TestRecipe::updateRecipe()
     r.setYield(1);
     r.setInstructions("newInstructions");
     r.appendIngredient("newIngr", "newQuant");
-    r.updateRecipe();
+    QVERIFY(r.updateRecipe());
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
     QSqlQuery query(db);
@@ -124,11 +124,11 @@ void TestRecipe::updateOnlyOneIngredient()
     r.setConnectionName(mConnectionName);
     r.appendIngredient("Flour", "500");
     r.appendIngredient("Water", "250");
-    r.addRecipe();
+    QVERIFY(r.addRecipe());
 
     r.setNameAt(0, "00 Flour");
     r.setQuantityAt(0, "400");
-    r.updateRecipe();
+   QVERIFY(r.updateRecipe());
 
     Recipe recipeIngr;
     recipeIngr.setConnectionName(mConnectionName);
@@ -147,10 +147,10 @@ void TestRecipe::updateAddIngredient()
     r.setConnectionName(mConnectionName);
     r.appendIngredient("Flour", "500");
     r.appendIngredient("Water", "250");
-    r.addRecipe();
+    QVERIFY(r.addRecipe());
 
     r.appendIngredient("Salt", "10");
-    r.updateRecipe();
+    QVERIFY(r.updateRecipe());
 
     Recipe recipeIngr;
     recipeIngr.setConnectionName(mConnectionName);
@@ -172,10 +172,10 @@ void TestRecipe::updateRemoveOneIngrdient()
     r.setConnectionName(mConnectionName);
     r.appendIngredient("Flour", "500");
     r.appendIngredient("Water", "250");
-    r.addRecipe();
+    QVERIFY(r.addRecipe());
 
     r.removeIngredientAt(1);
-    r.updateRecipe();
+    QVERIFY(r.updateRecipe());
 
     Recipe recipeIngr;
     recipeIngr.setConnectionName(mConnectionName);

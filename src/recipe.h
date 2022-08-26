@@ -83,8 +83,8 @@ public slots:
 
     void setConnectionName(const QString &newConnectionName = "");
     // Add recipe to database
-    void addRecipe();
-    void updateRecipe();
+    bool addRecipe();
+    bool updateRecipe();
     bool deleteRecipe();
     Recipe *clone();
     bool isEmpty();

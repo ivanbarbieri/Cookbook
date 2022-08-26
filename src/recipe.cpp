@@ -1,6 +1,7 @@
 #include "db_manager.h"
 #include "recipe.h"
 
+#include <QSqlDriver>
 #include <QSqlQuery>
 #include <QQmlEngine>
 
@@ -49,7 +50,6 @@ QVariant Recipe::data(const QModelIndex &index, int role) const
     if (row < 0 || row >= mIngredientsList.count())
         return QVariant();
 
-//    const Ingredient *ingredient = mIngredientsList.at(row);
     switch (role) {
     case NameRole:
         return mIngredientsList.at(row)->name;
@@ -78,6 +78,7 @@ void Recipe::setRecipeId(int newRecipeId)
 {
     if (mRecipeId == newRecipeId)
         return;
+
     mRecipeId = newRecipeId;
     emit recipeIdChanged();
 }
@@ -91,6 +92,7 @@ void Recipe::setPathImage(const QString &newPathImage)
 {
     if (mPathImage == newPathImage)
         return;
+
     mPathImage = newPathImage;
     emit pathImageChanged();
 }
@@ -104,6 +106,7 @@ void Recipe::setTitle(const QString &newTitle)
 {
     if (mTitle == newTitle)
         return;
+
     mTitle = newTitle;
     emit titleChanged();
 }
@@ -117,6 +120,7 @@ void Recipe::setPreparationTime(const int newPreparationTime)
 {
     if (mPreparationTime == newPreparationTime)
         return;
+
     mPreparationTime = newPreparationTime;
     emit preparationTimeChanged();
 }
@@ -130,6 +134,7 @@ void Recipe::setCookingTime(const int newCookingTime)
 {
     if (mCookingTime == newCookingTime)
         return;
+
     mCookingTime = newCookingTime;
     emit cookingTimeChanged();
 }
@@ -143,6 +148,7 @@ void Recipe::setYield(const int newYield)
 {
     if (mYield == newYield)
         return;
+
     mYield = newYield;
     emit yieldChanged();
 }
@@ -156,6 +162,7 @@ void Recipe::setInstructions(const QString &newInstructions)
 {
     if (mInstructions == newInstructions)
         return;
+
     mInstructions = newInstructions;
     emit instructionsChanged();
 }
@@ -230,7 +237,6 @@ void Recipe::getIngredients()
         return;
 
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-//    db.transaction();
     QSqlQuery query(db);
     query.prepare("SELECT ingredientName, quantity "
                   "FROM ingredients NATURAL JOIN recipes_ingredients "
@@ -248,13 +254,20 @@ void Recipe::setConnectionName(const QString &newConnectionName)
 {
     if (mConnectionName == newConnectionName)
         return;
+
     mConnectionName = newConnectionName;
 }
 
-void Recipe::addRecipe()
+bool Recipe::addRecipe()
 {
     QSqlDatabase db = QSqlDatabase::database(mConnectionName);
-//    db.transaction();
+    if (!db.transaction()) {
+        if (!db.driver()->hasFeature(QSqlDriver::Transactions))
+            qWarning("The driver doesn't support transactions");
+
+        return false;
+    }
+
     QSqlQuery query(db);
     query.prepare("INSERT INTO recipes (title, pathImage, preparationTime, cookingTime, yield, instructions)"
                   "VALUES (:title, :pathImage, :preparationTime, :cookingTime, :yield, :instructions)");
@@ -264,8 +277,13 @@ void Recipe::addRecipe()
     query.bindValue(":cookingTime", mCookingTime);
     query.bindValue(":yield", mYield);
     query.bindValue(":instructions", mInstructions);
-    if (!query.exec())
+    if (!query.exec()) {
         qWarning() << DbManager::errorMessage(query);
+        if (!db.rollback())
+            qWarning() << DbManager::errorMessage(query);
+
+        return false;
+    }
 
     mRecipeId = query.lastInsertId().toInt();
 
@@ -275,6 +293,10 @@ void Recipe::addRecipe()
         query.bindValue(":name", ingredient->name);
         if (!query.exec()) {
             qWarning() << DbManager::errorMessage(query);
+            if (!db.rollback())
+                qWarning() << DbManager::errorMessage(query);
+
+            return false;
         } else if (query.next()) {
             idIngredient = query.value(0).toInt();
         } else {
@@ -282,6 +304,10 @@ void Recipe::addRecipe()
             query.bindValue(":ingredientName", ingredient->name);
             if (!query.exec()) {
                qWarning() << DbManager::errorMessage(query);
+               if (!db.rollback())
+                   qWarning() << DbManager::errorMessage(query);
+
+               return false;
             } else {
                 idIngredient = query.lastInsertId().toInt();
             }
@@ -292,16 +318,33 @@ void Recipe::addRecipe()
         query.bindValue(":recipeId", mRecipeId);
         query.bindValue(":ingredientId", idIngredient);
         query.bindValue(":quantity", ingredient->quantity);
-        if (!query.exec())
+        if (!query.exec()) {
             qWarning() << DbManager::errorMessage(query);
+            if (!db.rollback())
+                qWarning() << DbManager::errorMessage(query);
+
+            return false;
+        }
     }
 
-//    db.commit();
+    if (!db.commit()) {
+        qWarning() << DbManager::errorMessage(query);
+        return false;
+    }
+    return true;
 }
 
-void Recipe::updateRecipe()
+bool Recipe::updateRecipe()
 {
-    QSqlQuery query(QSqlDatabase::database(mConnectionName));
+    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    if (!db.transaction()) {
+        if (!db.driver()->hasFeature(QSqlDriver::Transactions))
+            qWarning("The driver doesn't support transactions");
+
+        return false;
+    }
+
+    QSqlQuery query(db);
     query.prepare("UPDATE recipes SET"
                   " title = :title,"
                   " pathImage = :pathImage,"
@@ -317,13 +360,23 @@ void Recipe::updateRecipe()
     query.bindValue(":yield", mYield);
     query.bindValue(":instructions", mInstructions);
     query.bindValue(":recipeId", mRecipeId);
-    if (!query.exec())
+    if (!query.exec()) {
         qWarning() << DbManager::errorMessage(query);
+        if (!db.rollback())
+            qWarning() << DbManager::errorMessage(query);
+
+        return false;
+    }
 
     query.prepare("DELETE FROM recipes_ingredients WHERE recipeId = :recipeId");
     query.bindValue(":recipeId", mRecipeId);
-    if (!query.exec())
+    if (!query.exec()) {
         qWarning() << DbManager::errorMessage(query);
+        if (!db.rollback())
+            qWarning() << DbManager::errorMessage(query);
+
+        return false;
+    }
 
     for (const auto& ingredient : mIngredientsList) {
         int idIngredient = -1;
@@ -331,6 +384,10 @@ void Recipe::updateRecipe()
         query.bindValue(":name", ingredient->name);
         if (!query.exec()) {
             qWarning() << DbManager::errorMessage(query);
+            if (!db.rollback())
+                qWarning() << DbManager::errorMessage(query);
+
+            return false;
         } else if (query.next()) {
             idIngredient = query.value(0).toInt();
         } else {
@@ -338,6 +395,10 @@ void Recipe::updateRecipe()
             query.bindValue(":ingredientName", ingredient->name);
             if (!query.exec()) {
                qWarning() << DbManager::errorMessage(query);
+               if (!db.rollback())
+                   qWarning() << DbManager::errorMessage(query);
+
+                return false;
             } else {
                 idIngredient = query.lastInsertId().toInt();
             }
@@ -348,9 +409,20 @@ void Recipe::updateRecipe()
         query.bindValue(":recipeId", mRecipeId);
         query.bindValue(":ingredientId", idIngredient);
         query.bindValue(":quantity", ingredient->quantity);
-        if (!query.exec())
+        if (!query.exec()) {
             qWarning() << DbManager::errorMessage(query);
+            if (!db.rollback())
+                qWarning() << DbManager::errorMessage(query);
+                
+            return false;
+        }
     }
+
+    if (!db.commit()) {
+        qWarning() << DbManager::errorMessage(query);
+        return false;
+    }
+    return true;
 }
 
 bool Recipe::deleteRecipe()
@@ -362,7 +434,6 @@ bool Recipe::deleteRecipe()
         qWarning() << DbManager::errorMessage(query);
         return false;
     }
-
     return true;
 }
 
@@ -372,7 +443,7 @@ Recipe *Recipe::clone()
     for (const auto &x : mIngredientsList)
         ingrList.append(new Ingredient{x->name, x->quantity});
 
-    Recipe * r = new Recipe(mConnectionName,
+    Recipe *r = new Recipe(mConnectionName,
                         recipeId(),
                         pathImage(),
                         title(),

@@ -91,7 +91,7 @@ void TestSearchRecipe::initTestCase()
     QVERIFY(db->createTables());
 
     for (const auto &r : mRecipes)
-        r->addRecipe();
+        QVERIFY(r->addRecipe());
 
     mRecipesList.reset(new RecipesList{mConnectionName});
     mSearchRecipe.reset(new SearchRecipe(mRecipesList.get()));
