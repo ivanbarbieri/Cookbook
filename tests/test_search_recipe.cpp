@@ -36,26 +36,26 @@ private:
     const QString mPath{"testDatabase.db"};
 
     QList<Recipe*> mRecipes {
-        new Recipe{mConnectionName, -1, "path/image", "Diet", 0, 0, 0, "instructions", QList<Recipe::Ingredient*>()},
-        new Recipe{mConnectionName, -1, "path/image", "Flour", 0, 0, 0, "instructions", QList<Recipe::Ingredient*>(
+        new Recipe{mConnectionName, -1, "path/image", "Diet", 0, 0, 0, "instructions", QList<QSharedPointer<Recipe::Ingredient>>()},
+        new Recipe{mConnectionName, -1, "path/image", "Flour", 0, 0, 0, "instructions", QList<QSharedPointer<Recipe::Ingredient>>(
                         {
-                            new Recipe::Ingredient{"Flour", ""}
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Flour", ""})
                         })},
-        new Recipe{mConnectionName, -1, "path/image", "Wet flour", 0, 0, 0, "instructions", QList<Recipe::Ingredient*>(
+        new Recipe{mConnectionName, -1, "path/image", "Wet flour", 0, 0, 0, "instructions", QList<QSharedPointer<Recipe::Ingredient>>(
                         {
-                            new Recipe::Ingredient{"Flour", ""},
-                            new Recipe::Ingredient{"Water", ""}
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Flour", ""}),
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Water", ""})
                         })},
-        new Recipe{mConnectionName, -1, "path/image", "Wet flour with eggs", 0, 0, 0, "instructions", QList<Recipe::Ingredient*>(
+        new Recipe{mConnectionName, -1, "path/image", "Wet flour with eggs", 0, 0, 0, "instructions", QList<QSharedPointer<Recipe::Ingredient>>(
                         {
-                            new Recipe::Ingredient{"Flour", ""},
-                            new Recipe::Ingredient{"Water", ""},
-                            new Recipe::Ingredient{"Eggs", ""}
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Flour", ""}),
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Water", ""}),
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Eggs", ""})
                         })},
-        new Recipe{mConnectionName, -1, "path/image", "Wet 00 flour", 0, 0, 0, "instructions", QList<Recipe::Ingredient*>(
+        new Recipe{mConnectionName, -1, "path/image", "Wet 00 flour", 0, 0, 0, "instructions", QList<QSharedPointer<Recipe::Ingredient>>(
                         {
-                            new Recipe::Ingredient{"00 flour", ""},
-                            new Recipe::Ingredient{"Water", ""}
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"00 flour", ""}),
+                            QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Water", ""})
                         })}
     };
 
@@ -94,7 +94,7 @@ void TestSearchRecipe::initTestCase()
         QVERIFY(r->addRecipe());
 
     mRecipesList.reset(new RecipesList{mConnectionName});
-    mSearchRecipe.reset(new SearchRecipe(mRecipesList.get()));
+    mSearchRecipe.reset(new SearchRecipe(mRecipesList));
 }
 
 void TestSearchRecipe::cleanupTestCase()
@@ -105,7 +105,7 @@ void TestSearchRecipe::cleanupTestCase()
 
 void TestSearchRecipe::init()
 {
-    mSearchRecipe.reset(new SearchRecipe(mRecipesList.get()));
+    mSearchRecipe.reset(new SearchRecipe(mRecipesList));
 }
 
 void TestSearchRecipe::cleanup()

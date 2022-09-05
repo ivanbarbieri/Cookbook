@@ -1,6 +1,7 @@
 #ifndef RECIPE_H
 #define RECIPE_H
 
+#include <QSharedPointer>
 #include <QAbstractListModel>
 #include <QtQml/qqml.h>
 
@@ -32,7 +33,7 @@ public:
     explicit Recipe(QObject *parent = nullptr);
     Recipe(const QString &connectionName, int recipeId, const QString &pathImage, const QString &title,
            int preparationTime, int cookingTime, int yield, const QString &instructions,
-           const QList<Ingredient*> &ingredientsList, QObject *parent = nullptr);
+           const QList<QSharedPointer<Ingredient>> &ingredientsList, QObject *parent = nullptr);
     ~Recipe();
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
@@ -70,7 +71,7 @@ public slots:
     const QString instructions() const;
     void setInstructions(const QString &newInstructions);
 
-    const QList<Ingredient*> ingredientsList() const;
+    const QList<QSharedPointer<Recipe::Ingredient>> ingredientsList() const;
     const QString name(int index) const;
     void setNameAt(int index, const QString &newName);
     const QString quantity(int index) const;
@@ -93,16 +94,16 @@ public:
     QString mConnectionName;
 
 private:
-    int mRecipeId = -1;
-    QString mPathImage = "";
-    QString mTitle = "";
-    int mPreparationTime = 0;
-    int mCookingTime = 0;
-    int mYield = 0;
-    QString mInstructions = "";
+    int mRecipeId{-1};
+    QString mPathImage{""};
+    QString mTitle{""};
+    int mPreparationTime{0};
+    int mCookingTime{0};
+    int mYield{0};
+    QString mInstructions{""};
 
-    QList<Ingredient*> mIngredientsList;
+    QList<QSharedPointer<Recipe::Ingredient>> mIngredientsList;
 };
 
-Q_DECLARE_METATYPE(Recipe::Ingredient*)
+Q_DECLARE_METATYPE(Recipe::Ingredient)
 #endif // RECIPE_H

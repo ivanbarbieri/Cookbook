@@ -8,9 +8,9 @@
 
 int main(int argc, char *argv[])
 {
-    const QString driver = "QSQLITE";
-    const QString connectionName = "cookbook";
-    const QString path = "cookbook.db";
+    const QString driver{"QSQLITE"};
+    const QString connectionName{"cookbook"};
+    const QString path{"cookbook.db"};
 
     QGuiApplication app(argc, argv);
     QScopedPointer<DbManager> db(new DbManager(driver, connectionName, path));
@@ -19,12 +19,12 @@ int main(int argc, char *argv[])
         exit(-1);
 
     RecipesList selectedRecipes(connectionName);
-    RecipesList recipesList(connectionName);
-    SearchRecipe searchRecipe(&recipesList);
+    QSharedPointer<RecipesList> recipesList(new RecipesList(connectionName));
+    SearchRecipe searchRecipe(recipesList);
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
-        {"_recipesList", QVariant::fromValue(&recipesList)},
+        {"_recipesList", QVariant::fromValue(recipesList.data())},
         {"_searchRecipe", QVariant::fromValue(&searchRecipe)},
         {"_selectedRecipes", QVariant::fromValue(&selectedRecipes)}
     });

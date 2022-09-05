@@ -39,10 +39,10 @@ public:
     const QString mConnectionName;
 
 private:
-    QList<Recipe*> mRecipes;
+    QList<QSharedPointer<Recipe>> mRecipes;
     const QHash<int, QByteArray> m_roles;
 };
 
-QML_DECLARE_TYPE(Recipe*)
+QML_DECLARE_TYPE(QSharedPointer<Recipe>)
 
 #endif // RECIPESLIST_H

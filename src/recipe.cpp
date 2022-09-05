@@ -4,13 +4,13 @@
 #include <QSqlDriver>
 #include <QSqlQuery>
 #include <QQmlEngine>
+#include <QSharedPointer>
 
 Recipe::Recipe(QObject *parent) : QAbstractListModel(parent)
 {}
 
 Recipe::~Recipe()
 {
-    removeAllIngredients();
 }
 
 Recipe::Recipe(const QString &connectionName,
@@ -21,7 +21,7 @@ Recipe::Recipe(const QString &connectionName,
                int cookingTime,
                int yield,
                const QString &instructions,
-               const QList<Recipe::Ingredient*> &ingredientsList,
+               const QList<QSharedPointer<Recipe::Ingredient>> &ingredientsList,
                QObject *parent
                ) : QAbstractListModel(parent),
     mConnectionName(connectionName),
@@ -173,7 +173,7 @@ void Recipe::setIngredientAt(int index, const QString &newName, const QString &n
         setQuantityAt(index, newQuantity);
 }
 
-const QList<Recipe::Ingredient*> Recipe::ingredientsList() const
+const QList<QSharedPointer<Recipe::Ingredient>> Recipe::ingredientsList() const
 {
     return mIngredientsList;
 }
@@ -188,7 +188,7 @@ const QString Recipe::name(int index) const
 
 void Recipe::setNameAt(int index, const QString &newName)
 {
-    if (not mIngredientsList.isEmpty() && index < mIngredientsList.size() and mIngredientsList[index]->name != newName)
+    if (not mIngredientsList.isEmpty() && index < mIngredientsList.size() && mIngredientsList[index]->name != newName)
         mIngredientsList[index]->name = newName;
 }
 
@@ -202,14 +202,14 @@ const QString Recipe::quantity(int index) const
 
 void Recipe::setQuantityAt(int index, const QString &newQuantity)
 {
-    if (not mIngredientsList.isEmpty() && index < mIngredientsList.size() and mIngredientsList[index]->quantity != newQuantity)
+    if (not mIngredientsList.isEmpty() && index < mIngredientsList.size() && mIngredientsList[index]->quantity != newQuantity)
         mIngredientsList[index]->quantity = newQuantity;
 }
 
 void Recipe::appendIngredient(const QString &newName, const QString &newQuantity)
 {
     beginInsertRows(QModelIndex(), mIngredientsList.count(), mIngredientsList.count());
-    mIngredientsList.append(new Ingredient{newName, newQuantity});
+    mIngredientsList.append(QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{newName, newQuantity}));
     endInsertRows();
 }
 
@@ -217,7 +217,6 @@ void Recipe::removeIngredientAt(int index)
 {
     if (index < mIngredientsList.count()) {
         beginRemoveRows(QModelIndex(), index, index);
-        delete mIngredientsList.at(index);
         mIngredientsList.removeAt(index);
         endRemoveRows();
     }
@@ -226,7 +225,6 @@ void Recipe::removeIngredientAt(int index)
 void Recipe::removeAllIngredients()
 {
     beginResetModel();
-    qDeleteAll(mIngredientsList);
     mIngredientsList.clear();
     endResetModel();
 }
@@ -336,7 +334,7 @@ bool Recipe::addRecipe()
 
 bool Recipe::updateRecipe()
 {
-    QSqlDatabase db = QSqlDatabase::database(mConnectionName);
+    QSqlDatabase db{QSqlDatabase::database(mConnectionName)};
     if (!db.transaction()) {
         if (!db.driver()->hasFeature(QSqlDriver::Transactions))
             qWarning("The driver doesn't support transactions");
@@ -366,6 +364,8 @@ bool Recipe::updateRecipe()
             qWarning() << DbManager::errorMessage(query);
 
         return false;
+    } else if (query.numRowsAffected() <= 0) {
+        return false;
     }
 
     query.prepare("DELETE FROM recipes_ingredients WHERE recipeId = :recipeId");
@@ -379,7 +379,7 @@ bool Recipe::updateRecipe()
     }
 
     for (const auto& ingredient : mIngredientsList) {
-        int idIngredient = -1;
+        int idIngredient{-1};
         query.prepare("SELECT ingredientId FROM ingredients WHERE ingredientName LIKE :name");
         query.bindValue(":name", ingredient->name);
         if (!query.exec()) {
@@ -439,9 +439,9 @@ bool Recipe::deleteRecipe()
 
 Recipe *Recipe::clone()
 {
-    auto ingrList = QList<Ingredient*>();
+    auto ingrList{QList<QSharedPointer<Recipe::Ingredient>>()};
     for (const auto &x : mIngredientsList)
-        ingrList.append(new Ingredient{x->name, x->quantity});
+        ingrList.append(QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{x->name, x->quantity}));
 
     Recipe *r = new Recipe(mConnectionName,
                         recipeId(),

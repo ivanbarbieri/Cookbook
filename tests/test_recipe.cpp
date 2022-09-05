@@ -48,7 +48,7 @@ void TestRecipe::cleanupTestCase()
 void TestRecipe::getIngredients_empty()
 {
     Recipe rSample{mConnectionName, -1, "path/image", "0 ingr", 0, 0, 0, "instructions",
-                QList<Recipe::Ingredient*>()};
+                QList<QSharedPointer<Recipe::Ingredient>>()};
     QVERIFY(rSample.addRecipe());
     Recipe r;
     r.setConnectionName(mConnectionName);
@@ -60,9 +60,9 @@ void TestRecipe::getIngredients_empty()
 void TestRecipe::getIngredients()
 {
     Recipe rSample{mConnectionName, -1, "path/image", "2 ingr", 0, 0, 0, "instructions",
-                QList<Recipe::Ingredient*>({
-                                               new Recipe::Ingredient{"Flour", ""},
-                                               new Recipe::Ingredient{"Water", ""}
+                QList<QSharedPointer<Recipe::Ingredient>>({
+                                               QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Flour", ""}),
+                                               QSharedPointer<Recipe::Ingredient>(new Recipe::Ingredient{"Water", ""})
                                            })};
     QVERIFY(rSample.addRecipe());
     Recipe r;

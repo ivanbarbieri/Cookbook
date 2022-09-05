@@ -5,7 +5,7 @@
 #include <QSqlQuery>
 #include <QQmlEngine>
 
-SearchRecipe::SearchRecipe(RecipesList *rl, QObject *parent) : QStringListModel(parent)
+SearchRecipe::SearchRecipe(QSharedPointer<RecipesList> rl, QObject *parent) : QStringListModel(parent)
 {
     recipesList = rl;
 }
@@ -60,7 +60,7 @@ void SearchRecipe::search(const QString &title)
     strQuery.append("SELECT recipeId, pathImage, title, preparationTime, cookingTime, yield, instructions "
                     "FROM recipes "
                     "WHERE title LIKE ? ");
-    if (not mIngredients.isEmpty()) {
+    if (!mIngredients.isEmpty()) {
         strQuery.append("AND recipeId IN (SELECT recipeId "
                         "FROM recipes_ingredients AS ri "
                         "WHERE EXISTS (SELECT recipeId FROM recipes_ingredients NATURAL JOIN ingredients WHERE ri.recipeId=recipeId AND IngredientName LIKE ? ) ");
@@ -86,7 +86,7 @@ void SearchRecipe::search(const QString &title)
                     query.value(4).toInt(),             // cookingTime
                     query.value(5).toInt(),             // yield
                     query.value(6).toString(),          // instructions
-                    QList<Recipe::Ingredient*>());      // (empty) ingredientsList
+                    QList<QSharedPointer<Recipe::Ingredient>>());      // (empty) ingredientsList
         QQmlEngine::setObjectOwnership(r, QQmlEngine::CppOwnership);
         recipesList->appendRecipe(r);
     }

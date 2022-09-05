@@ -7,7 +7,6 @@ RecipesList::RecipesList(const QString &connectionName, QObject *parent) : QAbst
 
 RecipesList::~RecipesList()
 {
-    removeAllRecipes();
 }
 
 int RecipesList::rowCount(const QModelIndex &parent) const
@@ -44,7 +43,7 @@ QHash<int, QByteArray> RecipesList::roleNames() const
 void RecipesList::appendRecipe(Recipe *r)
 {
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    mRecipes.append(r);
+    mRecipes.append(QSharedPointer<Recipe>(r));
     endInsertRows();
 }
 
@@ -52,7 +51,6 @@ void RecipesList::removeRecipe(int index)
 {
     if (index < mRecipes.size()) {
         beginRemoveRows(QModelIndex(), index, index);
-        delete mRecipes.at(index);
         mRecipes.remove(index);
         endRemoveRows();
     }
@@ -61,9 +59,6 @@ void RecipesList::removeRecipe(int index)
 void RecipesList::removeAllRecipes()
 {
     beginResetModel();
-    for (const auto &x : mRecipes)
-        x->removeAllIngredients();
-    qDeleteAll(mRecipes);
     mRecipes.clear();
     endResetModel();
 }
@@ -72,7 +67,8 @@ QVariant RecipesList::recipe(int index) const
 {
     if (index < 0 || index >= rowCount())
         return QModelIndex();
-    return QVariant::fromValue(mRecipes.at(index));
+
+    return QVariant::fromValue(mRecipes.at(index).data());
 }
 
 bool RecipesList::isEmpty()

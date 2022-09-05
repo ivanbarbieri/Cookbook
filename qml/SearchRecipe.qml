@@ -110,7 +110,7 @@ Item {
                     leftMargin: root.margin
                     rightMargin: root.margin
 
-
+                    
                 }
 
                 Text {

@@ -14,7 +14,7 @@ public:
         IngredientRole = Qt::UserRole
     };
 
-    explicit SearchRecipe(RecipesList *rl, QObject *parent = nullptr);
+    explicit SearchRecipe(QSharedPointer<RecipesList> rl, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex& parent) const override;
     QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override;
@@ -26,7 +26,7 @@ public slots:
     void search(const QString &title);
 
 private:
-    RecipesList *recipesList;
+    QSharedPointer<RecipesList> recipesList;
     QList<QString> mIngredients;
 };
 
