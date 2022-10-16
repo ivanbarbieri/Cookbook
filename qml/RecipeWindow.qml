@@ -1,7 +1,7 @@
 import qml.imports.Constants
 import qml.imports.CustomModules
-
 import Cookbook
+import AutocompleteEnum
 
 import QtQuick
 import QtQuick.Controls
@@ -17,6 +17,12 @@ Window {
     minimumWidth: Constants.minWidth
     minimumHeight: Constants.minHeight
     visible: false
+
+    MouseArea {
+        id: mouseAreaAutocomplete
+        z: -1
+        anchors.fill: parent
+    }
 
     ListView {
         property int currentIndex: 0
@@ -284,6 +290,7 @@ Window {
                     }
 
                     model: recipe.p_recipe
+
                     delegate: Item {
                         id: ingredient
                         property string p_name: recipe.p_recipe?.name(index) ?? ""
@@ -305,8 +312,10 @@ Window {
                                 rightMargin: 5
                             }
 
-                            CustomTextField {
+                            Autocomplete {
                                 id: name
+                                role: AutocompleteEnum.Ingredient
+                                bottomBoundY: root.height
                                 placeholderText: qsTr("Ingredient")
                                 width: ingredientForm.width / 2
                                 horizontalAlignment: Text.AlignLeft
@@ -317,6 +326,13 @@ Window {
                                     right: quantity.left
                                     rightMargin: 5
                                     verticalCenter: parent.verticalCenter
+                                }
+
+                                onFocusChanged: {
+                                    if (focus) {
+                                        var mouseXY = mapToItem(mouseAreaAutocomplete, Qt.rect(name.x, name.y, name.width, name.height))
+                                        componentY = mouseXY.y + name.height
+                                    }
                                 }
 
                                 onEditingFinished: recipe.p_recipe .setNameAt(index, text)

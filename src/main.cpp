@@ -1,6 +1,7 @@
 #include "db_manager.h"
 #include "search_recipe.h"
 #include "recipes_list.h"
+#include "autocomplete.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -18,16 +19,20 @@ int main(int argc, char *argv[])
     if (!db->isOpen() || !db->createTables() || !db->createTriggers())
         exit(-1);
 
-    RecipesList selectedRecipes(connectionName);
     QSharedPointer<RecipesList> recipesList(new RecipesList(connectionName));
     SearchRecipe searchRecipe(recipesList);
+    RecipesList selectedRecipes(connectionName);
+    Autocomplete autocomplete(connectionName);
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         {"_recipesList", QVariant::fromValue(recipesList.data())},
         {"_searchRecipe", QVariant::fromValue(&searchRecipe)},
-        {"_selectedRecipes", QVariant::fromValue(&selectedRecipes)}
+        {"_selectedRecipes", QVariant::fromValue(&selectedRecipes)},
+        {"_autocomplete", QVariant::fromValue(&autocomplete)}
     });
+
+    qmlRegisterUncreatableType<Autocomplete>("AutocompleteEnum", 1, 0, "AutocompleteEnum", "Not creatable as it is an enum type");
 
     engine.load(QUrl(QStringLiteral("Cookbook/qml/main.qml")));
 

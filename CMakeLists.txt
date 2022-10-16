@@ -16,6 +16,7 @@ set(header
     src/recipe.h
     src/recipes_list.h
     src/search_recipe.h
+    src/autocomplete.h
 )
 
 set(sources
@@ -24,6 +25,7 @@ set(sources
     src/recipe.cpp
     src/recipes_list.cpp
     src/search_recipe.cpp
+    src/autocomplete.cpp
 )
 
 set(qml
@@ -32,6 +34,7 @@ set(qml
     qml/RecipeWindow.qml
     qml/SearchRecipe.qml
     qml/SearchRecipeForm.qml
+    qml/Autocomplete.qml
 )
 
 set(resources

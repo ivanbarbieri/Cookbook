@@ -1,12 +1,16 @@
 import qml.imports.Constants
 import qml.imports.CustomModules
 import Cookbook
+import AutocompleteEnum
 
 import QtQuick
 import QtQuick.Controls
 
 Item {
     id: root
+
+    readonly property int heightTextField: 23
+    readonly property int heightButton: 23
 
     CustomButton {
         id: searchButton
@@ -23,12 +27,12 @@ Item {
         onClicked: _searchRecipe.search(title.text)
     }
 
-    CustomTextField {
+    Autocomplete {
         id: title
+        role: AutocompleteEnum.Title
+        bottomBoundY: root.height
         placeholderText: qsTr("Name recipe")
-        horizontalAlignment: Text.AlignLeft
-
-        color: Colors.white
+        height: heightTextField
         anchors {
             left: parent.left
             right: parent.right
@@ -40,7 +44,6 @@ Item {
         id: addIngredientButton
         text: 'Add ingredient'
         height: 23
-
         anchors {
             left: parent.left
             right: parent.right
@@ -52,10 +55,8 @@ Item {
 
     ListView {
         id: listView
-
         spacing: 5
         clip: true
-
         anchors {
             left: parent.left
             right: parent.right
@@ -68,36 +69,53 @@ Item {
             id: scrollBar
         }
 
+        MouseArea {
+            id: mouseArea
+            z: -1
+            anchors.fill: listView
+        }
+
         model: _searchRecipe
 
         delegate: Item {
-//                id: ingredientForm
             width: listView.width - scrollBar.width
-            height: 23 //ingredient.height
+            height: heightTextField
 
             anchors {
                 rightMargin: 5
             }
 
-            CustomTextField {
+            Autocomplete {
                 id: ingredient
-                placeholderText: qsTr("Ingredient")
+                role: AutocompleteEnum.Ingredient
+                bottomBoundY: listView.height
                 width: parent.width/2
+                height: heightTextField
+                placeholderText: qsTr("Ingredient")
                 horizontalAlignment: Text.AlignLeft
-
+                focus: false
                 anchors {
                     left: parent.left
                     right: removeButton.left
-                    rightMargin: 5
                     verticalCenter: parent.verticalCenter
+                    rightMargin: 5
                 }
+
+                onFocusChanged: {
+                    if (focus) {
+                        var mouseXY = mapToItem(mouseArea, Qt.rect(ingredient.x, ingredient.y, ingredient.width, ingredient.height))
+                        componentY = mouseXY.y + ingredient.height
+                    }
+                }
+
+                onSelected: _searchRecipe.setIngredientAt(index, ingredient.text)
 
                 onEditingFinished: _searchRecipe.setIngredientAt(index, text)
             }
 
             CustomButton {
                 id: removeButton
-                width: 23
+                width: ingredient.height
                 height: width
                 text: "\u2212"
                 font.pointSize: 15
