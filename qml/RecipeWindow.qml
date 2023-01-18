@@ -24,11 +24,11 @@ Window {
         anchors.fill: parent
     }
 
-    ListView {
+    ListView {        
+        id: tabBar
         property int currentIndex: 0
         property int prevIndex: 0
-        
-        id: tabBar
+
         height: 25
         anchors {left: parent.left; right: parent.right; top: parent.top}
         orientation: ListView.Horizontal
@@ -62,6 +62,7 @@ Window {
 
             Button {
                 id: removeTab
+
                 height: parent.height
                 width: parent.width * 0.25
                 anchors {right: parent.right; top: parent.top; bottom: parent.bottom}
@@ -80,6 +81,7 @@ Window {
 
     ListView {
         id: listview
+
         clip: true
         anchors {left: parent.left; right: parent.right; top: tabBar.bottom; bottom: parent.bottom}
         interactive: false
@@ -103,6 +105,7 @@ Window {
 
             CustomTextField {
                 id: title
+
                 placeholderText: qsTr("Title")
                 text: recipe.p_title
                 height:  35 + 0.03 * parent.height
@@ -118,6 +121,7 @@ Window {
 
             Image {
                 id: recipeImage
+
                 width: Math.min(listview.width, listview.height) * 0.3
                 height: width
                 fillMode: Image.PreserveAspectFit
@@ -141,6 +145,7 @@ Window {
 
                 FileDialog {
                     id: fileDialog
+                
                     title: "Please choose an image"
                     nameFilters: [ "Image files (*.bmp *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.xpm *.tiff *.svg)" ]
 
@@ -150,16 +155,15 @@ Window {
                 }
             }
 
-
             Column {
                 id: box
 
                 anchors {
                     left: recipeImage.right
                     top: title.bottom
+                    bottom: recipeImage.bottom
                     margins: Constants.margin
                 }
-
 
                 Label {
                     text: qsTr("Preparation time")
@@ -168,6 +172,7 @@ Window {
 
                 CustomTextField {
                     id: preparationTime
+
                     text: recipe.p_preparationTime
                     validator: RegularExpressionValidator { regularExpression: /\d*/ }
                     readOnly: {!editable}
@@ -184,6 +189,7 @@ Window {
 
                 CustomTextField {
                     id: cookingTime
+
                     text: recipe.p_cookingTime
                     validator: RegularExpressionValidator { regularExpression: /\d*/ }
                     readOnly: {!editable}
@@ -200,12 +206,42 @@ Window {
 
                 CustomTextField {
                     id: yield
+
                     text: recipe.p_yield
                     validator: RegularExpressionValidator { regularExpression: /\d*/ }
-                    readOnly: {!editable}
+                    readOnly: !editable
                     anchors {
                         left: parent.left
                         right: parent.right
+                    }
+
+                }
+                Row {
+                    id: yieldButtons
+
+                    signal yieldButtonClicked(str: string, oldYield: int, newYield: int)
+                    spacing: width * 0.25
+                    anchors.horizontalCenter: yield.horizontalCenter
+                    visible: !editable
+
+                    CustomButton {
+                        id: minusYieldButton
+                        text: '-'
+                        height: yield.height
+                        width: yield.height
+                        onClicked: {
+                            yield.text = Number(yield.text) > 0 ? Number(yield.text) - 1 : 0
+                        }
+                    }
+
+                    CustomButton {
+                        id: plusYieldButton
+                        text: '+'
+                        height: yield.height
+                        width: yield.height
+                        onClicked: {
+                            yield.text = Number(yield.text) + 1
+                        }
                     }
 
                 }
@@ -232,6 +268,7 @@ Window {
 
                 TextArea {
                     id: instructionsText
+
                     placeholderText: qsTr("Instructions")
                     text: p_instructions
                     selectionColor: Colors.darkGrey
@@ -248,6 +285,7 @@ Window {
 
             Item {
                 id: ingredientBox
+
                 anchors {
                     left: parent.horizontalCenter
                     right: parent.right
@@ -258,6 +296,7 @@ Window {
 
                 CustomButton {
                     id: addIngredientButton
+
                     text: 'Add ingredient'
                     height: 23
                     enabled: editable
@@ -277,7 +316,6 @@ Window {
 
                     spacing: 5
                     clip: true
-
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -293,6 +331,7 @@ Window {
 
                     delegate: Item {
                         id: ingredient
+                        
                         property string p_name: recipe.p_recipe?.name(index) ?? ""
                         property string p_quantity: recipe.p_recipe?.quantity(index) ?? ""
 
@@ -314,6 +353,7 @@ Window {
 
                             Autocomplete {
                                 id: name
+                                
                                 role: AutocompleteEnum.Ingredient
                                 bottomBoundY: root.height
                                 placeholderText: qsTr("Ingredient")
@@ -335,29 +375,50 @@ Window {
                                     }
                                 }
 
-                                onEditingFinished: recipe.p_recipe .setNameAt(index, text)
+                                onEditingFinished: recipe.p_recipe.setNameAt(index, text)
                             }
 
                             CustomTextField {
                                 id: quantity
+                                property string quantityProportion: ingredient.p_quantity
+
                                 placeholderText: qsTr("Quantity")
                                 width: ingredientForm.width / 2
                                 selectionColor: Colors.darkGrey
                                 selectedTextColor: Colors.white
                                 horizontalAlignment: Text.AlignLeft
-                                text: ingredient.p_quantity
-                                readOnly: {!editable}
+                                text: editable ? ingredient.p_quantity : quantityProportion
+                                readOnly: !editable
                                 anchors {
                                     right: parent.right
                                     leftMargin: 5
                                 }
 
                                 onEditingFinished: recipe.p_recipe.setQuantityAt(index, text)
+
+                                Connections {
+                                    target: plusYieldButton
+
+                                    function onClicked()
+                                    {
+                                        quantity.quantityProportion = calculateIngredientProportion(ingredient.p_quantity, p_yield, yield.text)
+                                    }
+                                }
+
+                                Connections {
+                                    target: minusYieldButton
+
+                                    function onClicked()
+                                    {
+                                        quantity.quantityProportion = calculateIngredientProportion(ingredient.p_quantity, p_yield, yield.text)
+                                    }
+                                }
                             }
                         }
 
                         CustomButton {
                             id: removeButton
+
                             width: 23
                             height: width
                             text: "\u2212"
@@ -432,7 +493,6 @@ Window {
 
             RowLayout {
                 id: rowButtons
-
                 property var ingredients: []
 
                 height: 20
@@ -453,6 +513,7 @@ Window {
                     onClicked: {
                         editable = true
 
+                        yield.text = recipe.p_yield
                         if (rowButtons.ingredients.length == 0) {
                             let count = recipe.p_recipe.rowCount() - 1
                             while (count >= 0) {
@@ -468,12 +529,11 @@ Window {
 
                     ToolTip {
                         id: toolTip_update
-                        timeout: 1500
 
+                        timeout: 1500
                         contentItem: Text {
                             text: toolTip_update.text
                         }
-
                         background: Rectangle {
                             width: toolTip_update.text.width
                             border.width: 3
@@ -541,6 +601,7 @@ Window {
                     Layout.fillWidth: true
                     font.pixelSize: 15
                     visible: editable
+
                     onClicked: {
                         if (recipe.p_recipe.deleteRecipe()) {
                             _selectedRecipes.removeRecipe(index)
@@ -552,4 +613,53 @@ Window {
             }
         }
     }
+
+    function calculateIngredientProportion(str, yield, newYield) {
+        const regex = /((0+(?=[,\.\/\\])|[1-9])\d*([,\.]\d+|[/\\][1-9]\d*)?)/g;
+
+        let prev = -1
+        let cur = -1
+        let splitStr = []
+        let consecutiveNumber = false
+        let result = 1
+        let match = regex.exec(str)
+
+        while (match) {
+            cur = regex.lastIndex - match[0].length
+
+            let notNumber = str.substring(prev, cur)
+            
+            consecutiveNumber = /^ +$/.test(notNumber)
+            if (consecutiveNumber === false) {
+                splitStr.push(notNumber)
+                result = 1
+            }
+
+            let number = match[1].split(/[/\\]/)
+
+            if (number.length >= 2) {
+                result *= Number.parseFloat(number[0]) / Number.parseFloat(number[1])
+            } else {
+                result *= Number.parseFloat(number[0])
+            }
+
+            if (consecutiveNumber === true)
+                splitStr.pop()
+
+            splitStr.push((result * newYield / yield).toFixed(2))
+            prev = regex.lastIndex
+            match = regex.exec(str);
+        }
+
+        let newString = "";
+
+        for (const x of splitStr)
+            newString += x;
+
+        if (newString === "")
+            return str
+
+        return newString
+    }
 }
+
