@@ -14,7 +14,6 @@ CustomTextField {
     readonly property int suggestionHeight: 23
     // the maximum number of items in the suggestion list
     readonly property int maxItem: 5
-
     // init with an AutocompleteEnum to choose the type of suggestion
     property int role
     // the bottom bound of the parent
@@ -28,6 +27,8 @@ CustomTextField {
     horizontalAlignment: Text.AlignLeft
     color: Colors.white
     focus: true
+
+    onSelected: root.forceActiveFocus()
 
     onTextEdited: {
         _autocomplete.suggestions(role, text)
@@ -54,6 +55,7 @@ CustomTextField {
 
     Popup {
         id: popup
+
         x: parent.x
         padding: 0
         focus: true
@@ -66,6 +68,7 @@ CustomTextField {
 
         ListView {
             id: suggestionList
+
             width: root.width
             height: suggestionHeight * maxItem
             clip: true
@@ -129,6 +132,7 @@ CustomTextField {
 
             delegate: CustomButton {
                 id: suggestion
+
                 width: suggestionList.width - (suggestionList.count > maxItem ? scrollBar.width : 0)
                 height: suggestionHeight
                 text: _autocomplete.suggestionAt(model.index)
