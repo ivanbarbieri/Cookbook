@@ -5,7 +5,6 @@
 #include <QSqlQueryModel>
 #include <QSqlQuery>
 #include <QScopedPointer>
-#include <QFile>
 
 class TestRecipe : public QObject
 {
@@ -25,7 +24,6 @@ private:
     const QString mDriver{"QSQLITE"};
     const QString mConnectionName{"testDatabase"};
     const QString mPath{"testDatabase.db"};
-
     QScopedPointer<DbManager> db;
 };
 
