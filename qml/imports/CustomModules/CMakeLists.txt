@@ -5,6 +5,7 @@ qt_add_qml_module (CustomModules
         CustomButton.qml
         CustomScrollBar.qml
         CustomTextField.qml
+        CustomToolTip.qml
 )
 
 

@@ -89,6 +89,7 @@ Window {
         model: _selectedRecipes
         delegate: Item {
             id: recipe
+
             property bool editable: false
             property int parentIndex: index
 
@@ -220,12 +221,14 @@ Window {
                     id: yieldButtons
 
                     signal yieldButtonClicked(str: string, oldYield: int, newYield: int)
+
                     spacing: width * 0.25
                     anchors.horizontalCenter: yield.horizontalCenter
                     visible: !editable
 
                     CustomButton {
                         id: minusYieldButton
+
                         text: '-'
                         height: yield.height
                         width: yield.height
@@ -244,6 +247,67 @@ Window {
                         }
                     }
 
+                }
+            }
+
+            Row {
+                id: imageCheckBox
+
+                spacing: 15
+                visible: editable && recipe.p_pathImage != recipeImage.source
+                anchors {
+                    left: parent.left
+                    top: recipeImage.bottom
+                    bottom: ingredientBox.top
+                    leftMargin: Constants.margin
+                    rightMargin: Constants.margin
+                }
+
+                CheckBox {
+                    id: copyImageCheckBox
+
+                    text: qsTr("Copy image")
+                    font.pixelSize: 15
+                    enabled: editable
+                    checked: editable && recipe.p_pathImage != recipeImage.source
+
+                    anchors.verticalCenter: imageCheckBox.verticalCenter
+
+                    contentItem: Text {
+                        text: copyImageCheckBox.text
+                        color: Colors.white
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: copyImageCheckBox.indicator.width + copyImageCheckBox.spacing
+                    }
+
+                    MouseArea {
+                        anchors.fill: copyImageCheckBox
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {copyImageCheckBox.checked = !copyImageCheckBox.checked}
+                    }
+                }
+
+                CheckBox {
+                    id: deleteImageCheckBox
+
+                    text: qsTr("Delete the previous image")
+                    font.pixelSize: 15
+                    enabled: editable
+                    checked: editable && recipe.p_pathImage != recipeImage.source
+                    anchors.verticalCenter: imageCheckBox.verticalCenter
+
+                    contentItem: Text {
+                        text: deleteImageCheckBox.text
+                        color: Colors.white
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: deleteImageCheckBox.indicator.width + deleteImageCheckBox.spacing
+                    }
+
+                    MouseArea {
+                        anchors.fill: deleteImageCheckBox
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {deleteImageCheckBox.checked = !deleteImageCheckBox.checked}
+                    }
                 }
             }
 
@@ -463,6 +527,13 @@ Window {
                             bottom: scrollInstruction.top
                         }
                     }
+                    AnchorChanges {
+                        target: imageCheckBox
+
+                        anchors {
+                            bottom: scrollInstruction.top
+                        }
+                    }
                 },
                 State {
                     name: "larger"
@@ -486,6 +557,13 @@ Window {
                             right: scrollInstruction.left
                             top: recipeImage.bottom
                             bottom: rowButtons.top
+                        }
+                    }
+                    AnchorChanges {
+                        target: imageCheckBox
+
+                        anchors {
+                            bottom: ingredientBox.top
                         }
                     }
                 }
@@ -527,19 +605,8 @@ Window {
                         }
                     }
 
-                    ToolTip {
+                    CustomToolTip {
                         id: toolTip_update
-
-                        timeout: 1500
-                        contentItem: Text {
-                            text: toolTip_update.text
-                        }
-                        background: Rectangle {
-                            width: toolTip_update.text.width
-                            border.width: 3
-                            radius: Constants.radius
-                            color: Colors.lightGrey
-                        }
                     }
                 }
 
@@ -550,23 +617,41 @@ Window {
                     visible: editable
 
                     onClicked: {
+                        let previousImage = recipe.p_pathImage
+
                         editable = false
                         recipe.p_recipe.setTitle(title.text)
-                        recipe.p_recipe.setPathImage(recipeImage.source);
+                        recipe.p_recipe.setPathImage(recipeImage.source)
                         recipe.p_recipe.setPreparationTime(preparationTime.text)
                         recipe.p_recipe.setCookingTime(cookingTime.text)
                         recipe.p_recipe.setYield(yield.text)
                         recipe.p_recipe.setInstructions(instructionsText.text)
                         rowButtons.ingredients = []
-
                         if (recipe.p_recipe.updateRecipe()) {
-                            toolTip_update.text = "Successful update :)"
-                            toolTip_update.text.color = Colors.green
-                            toolTip_update.background.border.color = Colors.green
+                            let copied = false
+                            if (copyImageCheckBox.checked)
+                                copied = recipe.p_recipe.copyImage()
+
+                            let deleted = false
+                            if (deleteImageCheckBox.checked)
+                                deleted = recipe.p_recipe.deleteImage(previousImage)
+
+                            if (copyImageCheckBox.checked === copied && deleteImageCheckBox.checked === deleted) {
+                                toolTip_update.text = "Recipe updated :)"
+                                toolTip_update.bgColor= Colors.green
+                            } else {
+                                toolTip_update.text = "Recipe update but some errors occurred :|"
+                                if (copyImageCheckBox.checked !== copied)
+                                    toolTip_update.text = toolTip_update.text + "\n unable to copy the image"
+
+                                if (deleteImageCheckBox.checked !== deleted)
+                                    toolTip_update.text = toolTip_update.text + "\n unable to delete previous image"
+
+                                toolTip_update.bgColor = Colors.orange
+                            }
                         } else {
-                            toolTip_update.text = "Update failed :("
-                            toolTip_update.text.color = Colors.red
-                            toolTip_update.background.border.color = Colors.red
+                            toolTip_update.text = "Failed to update recipe :("
+                            toolTip_update.bgColor = Colors.red
                         }
                         toolTip_update.open()
                     }

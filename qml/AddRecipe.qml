@@ -10,15 +10,18 @@ import QtQuick.Dialogs
 
 Rectangle {
     id: root
+
     color: Colors.darkGrey
 
     CppRecipe {
         id: _recipe
+
         Component.onCompleted: _recipe.setConnectionName("cookbook")
     }
 
     Image {
         id: recipeImage
+
         width: Math.min(parent.width, parent.height) * 0.3
         height: width
         fillMode: Image.PreserveAspectFit
@@ -43,16 +46,19 @@ Rectangle {
 
     FileDialog {
         id: fileDialog
+
         title: "Please choose an image"
         nameFilters: [ "Image files (*.bmp *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.xpm *.tiff *.svg)" ]
 
         onAccepted: {
             _recipe.pathImage = fileDialog.currentFile
+            console.log(_recipe.pathImage)
         }
     }
 
     Item {
         id: box1
+
         anchors {
             left: recipeImage.right
             right: parent.right
@@ -77,6 +83,8 @@ Rectangle {
         }
     }
 
+
+
     Item {
         id: box2
 
@@ -91,10 +99,11 @@ Rectangle {
 
         CustomTextField {
             id: preparationTime
+
             placeholderText: qsTr("Preparation time")
             width: title.width * 0.3
             height: 35 + 0.15 * parent.height
-            font.pixelSize: 15 + height * 0.05
+            font.pixelSize: 13 + height * 0.05
             wrapMode: Text.Wrap
 
             anchors {
@@ -108,10 +117,11 @@ Rectangle {
 
         CustomTextField {
             id: cookingTime
+
             placeholderText: qsTr("Cooking time")
-            width: (title.width * 0.3)
+            width: title.width * 0.3
             height: preparationTime.height
-            font.pixelSize: 15 + height * 0.05
+            font.pixelSize: 13 + height * 0.05
 
             anchors {
                 left: preparationTime.right
@@ -125,10 +135,11 @@ Rectangle {
 
         CustomTextField {
             id: yield
+
             placeholderText: qsTr("Yield")
-            width: (title.width * 0.3)
+            width: title.width * 0.3
             height: preparationTime.height
-            font.pixelSize: 15 + height * 0.05
+            font.pixelSize: 13 + height * 0.05
 
             anchors {
                 left: cookingTime.right
@@ -144,18 +155,56 @@ Rectangle {
 /*
     *************************************************************
 */
+
+    Item {
+        id: copyImageCheckBox
+
+        anchors {
+            left: parent.left
+            top: recipeImage.bottom
+            bottom: addIngredientButton.top
+            leftMargin: Constants.margin
+            rightMargin: Constants.margin
+        }
+
+        CheckBox {
+            id: copyImageCheck
+
+            text: qsTr("Copy image")
+            height: 20
+            width: 100
+            font.pixelSize: 15
+            checked: true
+
+            anchors.verticalCenter: copyImageCheckBox.verticalCenter
+
+            contentItem: Text {
+                text: copyImageCheck.text
+                color: Colors.white
+                verticalAlignment: Text.AlignVCenter
+                leftPadding: copyImageCheck.indicator.width + copyImageCheck.spacing
+            }
+
+            MouseArea {
+                anchors.fill: copyImageCheck
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {copyImageCheck.checked = !copyImageCheck.checked}
+            }
+        }
+    }
+
     CustomButton {
         id: addIngredientButton
+
         text: 'Add ingredient'
-        height: 16
+        height: 20
 
         anchors {
             left: parent.left
             right: instructions.left
-            top: recipeImage.bottom
+            top: instructions.top
             leftMargin: Constants.margin
             rightMargin: Constants.margin + scrollBar.width
-            topMargin: Constants.margin
             bottomMargin: 2.5
         }
 
@@ -313,31 +362,26 @@ Rectangle {
 
         onClicked: {
             if (_recipe.addRecipe()) {
-                toolTip_addRecipe.text = "Recipe added :)"
-                toolTip_addRecipe.text.color = "green"
-                toolTip_addRecipe.background.border.color = "green"
+                let copied = false
+                if (copyImageCheck.checked)
+                    copied = _recipe.copyImage()
+
+                if (copyImageCheck.checked === copied) {
+                    toolTip_addRecipe.text = "Recipe added :)"
+                    toolTip_addRecipe.bgColor= Colors.green
+                } else {
+                    toolTip_addRecipe.text = "Recipe added but unable to copy the image :|"
+                    toolTip_addRecipe.bgColor = Colors.orange
+                }
             } else {
                 toolTip_addRecipe.text = "Failed to add recipe :("
-                toolTip_addRecipe.text.color = "red"
-                toolTip_addRecipe.background.border.color = "red"
+                toolTip_addRecipe.bgColor = Colors.red
             }
             toolTip_addRecipe.open()
         }
 
-        ToolTip {
+        CustomToolTip {
             id: toolTip_addRecipe
-            timeout: 1500
-
-            contentItem: Text {
-                text: toolTip_addRecipe.text
-            }
-
-            background: Rectangle {
-                width: toolTip_addRecipe.text.width
-                color: Colors.grey
-                border.width: 3
-                radius: Constants.radius
-            }
         }
     }
 }

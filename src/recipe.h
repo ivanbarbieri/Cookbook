@@ -89,6 +89,8 @@ public slots:
     bool deleteRecipe();
     Recipe *clone();
     bool isEmpty();
+    bool copyImage();
+    bool deleteImage(const QString &path) const;
 
 public:
     QString mConnectionName;

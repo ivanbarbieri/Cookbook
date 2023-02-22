@@ -6,6 +6,13 @@
 #include <QQmlEngine>
 #include <QSharedPointer>
 
+#include <QDir>
+#include <QFileInfo>
+#include <QUrl>
+#include <QRegularExpression>
+
+class QFile;
+
 Recipe::Recipe(QObject *parent) : QAbstractListModel(parent)
 {}
 
@@ -413,7 +420,7 @@ bool Recipe::updateRecipe()
             qWarning() << DbManager::errorMessage(query);
             if (!db.rollback())
                 qWarning() << DbManager::errorMessage(query);
-                
+
             return false;
         }
     }
@@ -459,4 +466,87 @@ Recipe *Recipe::clone()
 bool Recipe::isEmpty()
 {
     return mIngredientsList.isEmpty();
+}
+
+bool Recipe::copyImage()
+{
+    if (mPathImage.isEmpty())
+        return false;
+
+    static QRegularExpression re{" \\(([1-9]\\d*)\\)$"};
+    const QString dirImages{"images"};
+
+    QUrl url(mPathImage);
+    QDir dir{QDir::current()};
+    if (!dir.mkpath(dirImages))
+        return false;
+
+    if (!dir.cd(dirImages))
+        return false;
+
+    QSqlDatabase db{QSqlDatabase::database(mConnectionName)};
+    if (!db.transaction()) {
+        if (!db.driver()->hasFeature(QSqlDriver::Transactions))
+            qWarning("The driver doesn't support transactions");
+
+        return false;
+    }
+
+
+    QFileInfo image{url.fileName()};
+    QString name{image.baseName()};
+
+    if(QFile::exists(dir.filePath(image.fileName()))) {
+        do {
+            QRegularExpressionMatch match;
+            if (name.lastIndexOf(QRegularExpression(re), -1, &match) != -1) {
+                int num{match.captured(1).toInt() + 1};
+                qsizetype startOffset{match.capturedStart(1)};
+
+                QString strNum;
+                strNum.setNum(num);
+                name.replace(startOffset, strNum.length() + 1, strNum + ")");
+            } else {
+                name.append(" (1)");
+            }
+        } while (QFile::exists(dir.filePath(name + "." + image.completeSuffix())));
+    }
+
+    name.append("." + image.completeSuffix());
+    name = dir.filePath(name);
+
+    QSqlQuery query(db);
+    query.prepare("UPDATE recipes SET"
+                  " pathImage = :pathImage"
+                  " WHERE recipeId = :recipeId");
+    query.bindValue(":pathImage", QUrl::fromLocalFile(dir.filePath(name)).toString());
+    query.bindValue(":recipeId", mRecipeId);
+    if (!query.exec()) {
+        qWarning() << DbManager::errorMessage(query);
+        if (!db.rollback())
+            qWarning() << DbManager::errorMessage(query);
+
+        return false;
+    } else if (query.numRowsAffected() <= 0) {
+        return false;
+    }
+
+    if (QFile::copy(url.toLocalFile(), dir.filePath(name))) {
+        if (!db.commit()) {
+            qWarning() << DbManager::errorMessage(query);
+            return false;
+        }
+        setPathImage(QUrl::fromLocalFile(dir.filePath(name)).toString());
+        return true;
+    }
+
+    if (!db.rollback())
+        qWarning() << DbManager::errorMessage(query);
+
+    return false;
+}
+
+bool Recipe::deleteImage(const QString &path) const
+{
+    return QFile::remove(QUrl(path).toLocalFile());
 }

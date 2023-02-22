@@ -10,5 +10,6 @@ QtObject {
     readonly property color black: "black"
     readonly property color white: "white"
     readonly property color red: "red"
+    readonly property color orange: "orange"
     readonly property color green: "green"
 }
