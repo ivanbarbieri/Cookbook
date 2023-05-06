@@ -11,7 +11,7 @@ CustomTextField {
     // this signal is emitted when a word is selected
     signal selected
 
-    readonly property int suggestionHeight: 23
+    readonly property int suggestionHeight: Constants.height
     // the maximum number of items in the suggestion list
     readonly property int maxItem: 5
     // init with an AutocompleteEnum to choose the type of suggestion
@@ -23,9 +23,8 @@ CustomTextField {
     // check if listview needs to be rotated to fit inside the parent
     property bool isRotated: bottomBoundY < componentY + (suggestionHeight * maxItem)
 
-    width: parent.width
+    implicitWidth: parent.width
     horizontalAlignment: Text.AlignLeft
-    color: Colors.white
     focus: true
 
     onSelected: root.forceActiveFocus()
@@ -102,6 +101,7 @@ CustomTextField {
                         } else {
                             suggestionList.currentIndex--
                         }
+
                         if (suggestionList.currentIndex < 0) {
                             suggestionList.currentIndex = suggestionList.count - 1
                         } else if (suggestionList.currentIndex >= suggestionList.count) {
@@ -137,10 +137,36 @@ CustomTextField {
                 height: suggestionHeight
                 text: _autocomplete.suggestionAt(model.index)
                 rotation: isRotated ? 180 : 0
+                radius: 0
 
                 background: Rectangle {
+                    id: bg
+
                     color: index === suggestionList.currentIndex ? Colors.lightGrey : Colors.white
-                    border.width: hovered ? 3 : 1
+
+                    border.width: index === suggestionList.currentIndex ? 2 : 0
+                    border.color: suggestion.down ? Colors.white : index === suggestionList.currentIndex ? Colors.bgSecondary : Colors.lightGrey
+                    radius: 0
+
+                    MouseArea {
+                        id: bgArea
+                        hoverEnabled: true
+                        z: -1
+
+                        anchors.fill: bg
+
+                        onMouseXChanged: {
+                            suggestionList.currentIndex = index
+                        }
+
+                        onMouseYChanged: {
+                            suggestionList.currentIndex = index
+                        }
+
+                        onEntered: {
+                            suggestionList.currentIndex = index
+                        }
+                    }
                 }
 
                 KeyNavigation.tab: root

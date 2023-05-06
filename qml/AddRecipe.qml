@@ -11,7 +11,7 @@ import QtQuick.Dialogs
 Rectangle {
     id: root
 
-    color: Colors.darkGrey
+    color: Colors.bgPrimary
 
     CppRecipe {
         id: _recipe
@@ -25,15 +25,22 @@ Rectangle {
         width: Math.min(parent.width, parent.height) * 0.3
         height: width
         fillMode: Image.PreserveAspectFit
-        source: _recipe.pathImage  !== "" ? _recipe.pathImage : "icons/placeholder.svg"
+        source: _recipe.pathImage !== "" ? _recipe.pathImage : "icons/placeholder.svg"
+        asynchronous : true
 
         anchors {
             left: parent.left
-            top: parent.top
-            margins: Constants.margin
+            top: title.bottom
+            leftMargin: Constants.margin
+            rightMargin: Constants.margin
+            topMargin: Constants.margin
         }
 
-        asynchronous : true
+        onStatusChanged: {
+            if (recipeImage.status === Image.Error || recipeImage.status === Image.Null) {
+                source = "icons/placeholder.svg"
+            }
+        }
 
         MouseArea {
             anchors.fill: parent
@@ -41,6 +48,13 @@ Rectangle {
             cursorShape: Qt.PointingHandCursor
 
             onClicked: { fileDialog.open() }
+        }
+
+        // Background image
+        Rectangle {
+            color: Colors.grey
+            anchors.fill: parent
+            z:-1
         }
     }
 
@@ -52,100 +66,116 @@ Rectangle {
 
         onAccepted: {
             _recipe.pathImage = fileDialog.currentFile
-            console.log(_recipe.pathImage)
         }
     }
 
-    Item {
-        id: box1
+    CustomTextField {
+        id: title
+
+        placeholderText: qsTr("Recipe title")
+        height:  35 + 0.03 * parent.height
 
         anchors {
-            left: recipeImage.right
+            left: parent.left
             right: parent.right
-            top: recipeImage.top
-            bottom: recipeImage.verticalCenter
+            top: parent.top
             leftMargin: Constants.margin
             rightMargin: Constants.margin
+            topMargin: Constants.margin
         }
 
-        CustomTextField {
-            id: title
-            placeholderText: qsTr("Recipe title")
-            height:  35 + 0.3 * parent.height
-            font.pixelSize: 15 + height * 0.05
+        onTextChanged: invisibleTitleText.text = text
 
-            anchors {
-                left: parent.left
-                right: parent.right
-                verticalCenter: parent.verticalCenter
-            }
-            onEditingFinished: _recipe.title = text
+        onEditingFinished: _recipe.title = text
+
+        Text {
+            id: invisibleTitleText
+
+            leftPadding: title.leftPadding
+            rightPadding: title.rightPadding
+            font.pixelSize: title.height - 8
+            fontSizeMode: Text.Fit;
+            minimumPixelSize: height / 4
+            visible: false
+
+            anchors.fill: title
+
+            onFontInfoChanged: title.font.pixelSize = fontInfo.pixelSize
+
         }
     }
 
+    Column {
+        id: box
 
-
-    Item {
-        id: box2
+        width: 130
 
         anchors {
             left: recipeImage.right
-            right: parent.right
-            top: recipeImage.verticalCenter
+            top: title.bottom
             bottom: recipeImage.bottom
-            leftMargin: Constants.margin
-            rightMargin: Constants.margin
+            margins: Constants.margin
+        }
+
+        Label {
+            text: qsTr("Preparation time")
+            font.pixelSize: preparationTime.font.pixelSize
+            color: Colors.text
         }
 
         CustomTextField {
             id: preparationTime
 
             placeholderText: qsTr("Preparation time")
-            width: title.width * 0.3
-            height: 35 + 0.15 * parent.height
-            font.pixelSize: 13 + height * 0.05
+            height: 30
+            font.pixelSize: 15
             wrapMode: Text.Wrap
 
             anchors {
                 left: parent.left
-                verticalCenter: parent.verticalCenter
+                right: parent.right
             }
 
             validator: RegularExpressionValidator { regularExpression: /\d*/ }
             onEditingFinished: _recipe.preparationTime = text ? text : 0
         }
 
+        Label {
+            text: qsTr("Cooking time")
+            color: Colors.text
+        }
+
         CustomTextField {
             id: cookingTime
 
             placeholderText: qsTr("Cooking time")
-            width: title.width * 0.3
             height: preparationTime.height
-            font.pixelSize: 13 + height * 0.05
+            font.pixelSize: preparationTime.font.pixelSize
 
             anchors {
-                left: preparationTime.right
-                leftMargin: Constants.margin
-                verticalCenter: parent.verticalCenter
+                left: parent.left
+                right: parent.right
             }
 
             validator: RegularExpressionValidator { regularExpression: /\d*/ }
             onEditingFinished: _recipe.cookingTime = text ? text : 0
         }
 
+        Label {
+            text: qsTr("Yield")
+            color: Colors.text
+        }
+
         CustomTextField {
             id: yield
 
             placeholderText: qsTr("Yield")
-            width: title.width * 0.3
             height: preparationTime.height
-            font.pixelSize: 13 + height * 0.05
+            font.pixelSize: preparationTime.font.pixelSize
 
             anchors {
-                left: cookingTime.right
+                left: parent.left
                 right: parent.right
-                leftMargin: Constants.margin
-                verticalCenter: parent.verticalCenter
             }
 
             validator: RegularExpressionValidator { regularExpression: /\d*/ }
@@ -155,41 +185,20 @@ Rectangle {
 /*
     *************************************************************
 */
+    CustomCheckBox {
+        id: copyImageCheck
 
-    Item {
-        id: copyImageCheckBox
+        text: qsTr("Copy image")
+        font.pixelSize: 13
+        checked: true
 
         anchors {
             left: parent.left
             top: recipeImage.bottom
-            bottom: addIngredientButton.top
             leftMargin: Constants.margin
             rightMargin: Constants.margin
-        }
-
-        CheckBox {
-            id: copyImageCheck
-
-            text: qsTr("Copy image")
-            height: 20
-            width: 100
-            font.pixelSize: 15
-            checked: true
-
-            anchors.verticalCenter: copyImageCheckBox.verticalCenter
-
-            contentItem: Text {
-                text: copyImageCheck.text
-                color: Colors.white
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: copyImageCheck.indicator.width + copyImageCheck.spacing
-            }
-
-            MouseArea {
-                anchors.fill: copyImageCheck
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {copyImageCheck.checked = !copyImageCheck.checked}
-            }
+            topMargin: 10
+            bottomMargin: 10
         }
     }
 
@@ -198,13 +207,15 @@ Rectangle {
 
         text: 'Add ingredient'
         height: 20
+        font.pixelSize: 13
 
         anchors {
             left: parent.left
             right: instructions.left
-            top: instructions.top
+            top: copyImageCheck.bottom
             leftMargin: Constants.margin
             rightMargin: Constants.margin + scrollBar.width
+            topMargin: 10
             bottomMargin: 2.5
         }
 
@@ -267,12 +278,10 @@ Rectangle {
                     anchors {
                         left: parent.left
                         rightMargin: 5
-                        verticalCenter: parent.verticalCenter
                     }
 
                     onFocusChanged: {
                         if (focus) {
-                            console.log("index " + index)
                             var mouseXY = mapToItem(mouseArea, Qt.rect(ingredient.x, ingredient.y, ingredient.width, ingredient.height))
                             componentY = mouseXY.y + ingredient.height
                         }
@@ -291,7 +300,6 @@ Rectangle {
                         left: ingredient.right
                         right: parent.right
                         leftMargin: 5
-                        verticalCenter: parent.verticalCenter
                     }
 
                     onEditingFinished: _recipe.setQuantityAt(index, text)
@@ -300,11 +308,11 @@ Rectangle {
 
             CustomButton {
                 id: removeButton
+
                 width: 23
                 height: width
-                text: "\u2212"
+                text: "\uFF0D"
                 font.pixelSize: 15
-                bottomPadding: 10
 
                 anchors {
                     right: parent.right
@@ -319,27 +327,38 @@ Rectangle {
 
     ScrollView {
         id: instructions
-        width: (parent.width + anchors.rightMargin + anchors.leftMargin)/2
+
+        width: (parent.width + anchors.rightMargin + anchors.leftMargin) / 2
         clip: true
 
         anchors {
+            left: box.right
             right: parent.right
-            top: recipeImage.bottom
+            top: title.bottom
             bottom: addRecipeButton.top
-            topMargin: Constants.margin
-            rightMargin: Constants.margin
-            bottomMargin: Constants.margin
+            margins: Constants.margin
+        }
+
+        ScrollBar.vertical: CustomScrollBar {
+            anchors {
+                right: parent.right
+                top: parent.top
+                bottom: parent.bottom
+            }
         }
 
         TextArea {
             id: instructionsText
+
             placeholderText: qsTr("Instructions")
-            selectionColor: Colors.darkGrey
-            selectedTextColor: Colors.white
+            placeholderTextColor: Colors.placeholderText
+            color: Colors.text
+            selectionColor: Colors.selection
+            selectedTextColor: Colors.selectedText
             wrapMode: Text.Wrap
-            font.pixelSize: 15
+            font.pixelSize: Constants.pixelSize
             background: Rectangle {
-                color: Colors.grey
+                color: Colors.bgText
                 radius: Constants.radius
             }
 
@@ -349,10 +368,11 @@ Rectangle {
 
     CustomButton {
         id: addRecipeButton
+
         text: "Add recipe"
         width: parent.width * 0.3
-        height: 20
-        font.pixelSize: 15
+        height: 23
+        font.pixelSize: 13
 
         anchors {
             bottom: parent.bottom
@@ -368,14 +388,14 @@ Rectangle {
 
                 if (copyImageCheck.checked === copied) {
                     toolTip_addRecipe.text = "Recipe added :)"
-                    toolTip_addRecipe.bgColor= Colors.green
+                    toolTip_addRecipe.bgColor= Colors.success
                 } else {
                     toolTip_addRecipe.text = "Recipe added but unable to copy the image :|"
-                    toolTip_addRecipe.bgColor = Colors.orange
+                    toolTip_addRecipe.bgColor = Colors.warning
                 }
             } else {
                 toolTip_addRecipe.text = "Failed to add recipe :("
-                toolTip_addRecipe.bgColor = Colors.red
+                toolTip_addRecipe.bgColor = Colors.error
             }
             toolTip_addRecipe.open()
         }

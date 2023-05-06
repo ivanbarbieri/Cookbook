@@ -39,6 +39,7 @@ set(qml
 
 set(resources
     qml/icons/placeholder.svg
+    qml/icons/open-in-popup.svg
 )
 
 qt_add_executable(${PROJECT_NAME}

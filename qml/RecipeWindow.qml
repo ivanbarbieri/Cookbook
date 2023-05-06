@@ -11,7 +11,7 @@ import QtQuick.Dialogs
 
 Window {
     id: root
-    color: Colors.darkGrey
+    color: Colors.bgPrimary
     width: Constants.minWidth
     height: Constants.minHeight
     minimumWidth: Constants.minWidth
@@ -20,61 +20,139 @@ Window {
 
     MouseArea {
         id: mouseAreaAutocomplete
+
         z: -1
         anchors.fill: parent
     }
 
-    ListView {        
+    ListView {
         id: tabBar
-        property int currentIndex: 0
+
+        currentIndex: 0
         property int prevIndex: 0
 
-        height: 25
-        anchors {left: parent.left; right: parent.right; top: parent.top}
+        height: 25 + tabBarScrollbar.height
         orientation: ListView.Horizontal
-        spacing: 1
+        spacing: 3
+        clip: true
+        focus: true
+
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
+
+        addDisplaced: Transition {
+            NumberAnimation { properties: "x,y"; duration: 1000 }
+        }
+
+        ScrollBar.horizontal: CustomScrollBar {
+            id: tabBarScrollbar
+            orientation: Qt.Horizontal
+            interactive: true
+        }
+
         model: _selectedRecipes
-        delegate: Rectangle {
+
+        delegate: CustomButton {
+            id: tab
+
+            property alias tabButton: removeTab
+            property alias tabText: tabLabel
+
             height: 25
             width: 100
-            color: Colors.darkGrey
+            bgColor: tabBar.currentIndex === index ? Colors.selectedTab : Colors.unselectedTab
+            radius: 0
 
-            Text {
-                height: parent.height
-                width: parent.width * 0.75
-                anchors {left: parent.left; right: removeTab.left; top: parent.top; bottom: parent.bottom; margins: 2}
-                text: _selectedRecipes.recipe(index).title ?? ""
-                color: Colors.white
+            onClicked: {
+                if (tabBar.prevIndex >= 0 && tabBar.currentIndex !== index) {
+                    tabBar.prevIndex = index
+                }
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (tabBar.prevIndex >= 0) {
-                            tabBar.itemAtIndex(tabBar.prevIndex).color = Colors.darkGrey
-                            tabBar.prevIndex = index
-                        }
-                        tabBar.currentIndex = index
-                        tabBar.itemAtIndex(index).color = Colors.lightGrey
-                        listview.positionViewAtIndex(index, ListView.Contain)
+                focus = true
+                tabBar.currentIndex = index
+            }
+
+            onHoveredChanged: {
+                if (hovered === true) {
+                    tabLabel.color = Colors.textTab
+                } else {
+                    if (tabBar.currentIndex !== index) {
+                        tabLabel.color = Colors.lightGrey
                     }
                 }
             }
 
-            Button {
-                id: removeTab
+            onFocusChanged: {
+                if (focus === true) {
+                    tab.bgColor = Colors.selectedTab
+                    tabLabel.color = Colors.textTab
+                    listview.positionViewAtIndex(index, ListView.Contain)
+                } else {
+                    tab.bgColor = Colors.unselectedTab
+                    tabLabel.color = Colors.lightGrey
+                }
+            }
+
+            contentItem: Text {
+                id: tabLabel
 
                 height: parent.height
-                width: parent.width * 0.25
-                anchors {right: parent.right; top: parent.top; bottom: parent.bottom}
-                text: "X"
+                width: parent.width * 0.75
+                text: _selectedRecipes.recipe(index).title ?? ""
+                color: hovered || tabBar.currentIndex === index ? Colors.white : Colors.lightGrey
+                elide: Text.ElideRight
+                verticalAlignment: Text.AlignVCenter
+
+                anchors {
+                    left: parent.left
+                    right: removeTab.left
+                    top: parent.top
+                    bottom: parent.bottom
+                    margins: 5
+                }
+            }
+
+            CustomButton {
+                id: removeTab
+
+                width: height
+                text: '\u2715'
+                padding: 0
+                bgColor: Colors.transparent
+                bgBorderWidth: 0
+                labelColor: hovered || tabBar.currentIndex === index ? Colors.white : Colors.lightGrey
+                font.bold: true
+                font.pixelSize: Constants.pixelSize
+                focusPolicy: Qt.NoFocus
+
+                anchors {
+                    verticalCenter: parent.verticalCenter
+                    right: parent.right
+                    margins: 5
+                }
+
                 onClicked: {
                     _selectedRecipes.removeRecipe(index)
                     if (listview.count <= 0)
                         root.visible = false
-                        
+
                     if (tabBar.prevIndex >= listview.count)
-                            tabBar.prevIndex = 0
+                        tabBar.prevIndex = 0
                 }
+            }
+
+            ListView.onAdd: {
+                if (tabBar.prevIndex >= 0) {
+                    tabBar.itemAtIndex(tabBar.prevIndex).bgColor = Colors.unselectedTab
+                    tabBar.itemAtIndex(tabBar.prevIndex).tabText.color = Colors.lightGrey
+                    tabBar.prevIndex = index
+                }
+
+                tabBar.currentIndex = tabBar.count - 1
+                listview.positionViewAtIndex(tabBar.currentIndex, ListView.Contain)
             }
         }
     }
@@ -83,8 +161,14 @@ Window {
         id: listview
 
         clip: true
-        anchors {left: parent.left; right: parent.right; top: tabBar.bottom; bottom: parent.bottom}
         interactive: false
+
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: tabBar.bottom
+            bottom: parent.bottom
+        }
 
         model: _selectedRecipes
         delegate: Item {
@@ -101,22 +185,43 @@ Window {
             property int p_yield: p_recipe?.yield ?? 0
             property string p_instructions: p_recipe?.instructions ?? ""
 
-            height: listview.height
-            width: listview.width
+            implicitHeight: listview.height
+            implicitWidth: listview.width
 
             CustomTextField {
                 id: title
 
                 placeholderText: qsTr("Title")
                 text: recipe.p_title
+                implicitWidth: listview.width
                 height:  35 + 0.03 * parent.height
-                font.pixelSize: height - 8
                 readOnly: {!editable}
+                cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
+                leftPadding: invisibleTitleText.leftPadding
+                rightPadding: invisibleTitleText.rightPadding
+
                 anchors {
-                    left: parent.left
-                    right: parent.right
+                    left: recipe.left
+                    right: recipe.right
                     top: parent.top
                     margins: Constants.margin
+                }
+
+                onTextChanged: invisibleTitleText.text = text
+
+                Text {
+                    id: invisibleTitleText
+
+                    font.pixelSize: title.height - 8
+                    fontSizeMode: Text.Fit;
+                    minimumPixelSize: height / 3
+                    visible: false
+                    leftPadding: 10
+                    rightPadding: 10
+
+                    anchors.fill: title
+
+                    onFontInfoChanged: title.font.pixelSize = fontInfo.pixelSize
                 }
             }
 
@@ -127,6 +232,7 @@ Window {
                 height: width
                 fillMode: Image.PreserveAspectFit
                 source: recipe.p_pathImage
+                asynchronous : true
 
                 anchors {
                     left: parent.left
@@ -134,7 +240,11 @@ Window {
                     margins: Constants.margin
                 }
 
-                asynchronous : true
+                onStatusChanged: {
+                    if (recipeImage.status === Image.Error || recipeImage.status === Image.Null) {
+                        source = "icons/placeholder.svg"
+                    }
+                }
 
                 MouseArea {
                     anchors.fill: parent
@@ -146,13 +256,20 @@ Window {
 
                 FileDialog {
                     id: fileDialog
-                
+
                     title: "Please choose an image"
                     nameFilters: [ "Image files (*.bmp *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.xpm *.tiff *.svg)" ]
 
                     onAccepted: {
                         recipeImage.source = fileDialog.currentFile
                     }
+                }
+
+                // Background image
+                Rectangle {
+                    color: Colors.grey
+                    anchors.fill: parent
+                    z:-1
                 }
             }
 
@@ -168,15 +285,19 @@ Window {
 
                 Label {
                     text: qsTr("Preparation time")
-                    color: Colors.white
+                    font.pixelSize: preparationTime.font.pixelSize
+                    color: Colors.text
                 }
 
                 CustomTextField {
                     id: preparationTime
 
                     text: recipe.p_preparationTime
+                    height: Constants.height
+                    font.pixelSize: Constants.pixelSize
                     validator: RegularExpressionValidator { regularExpression: /\d*/ }
                     readOnly: {!editable}
+                    cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -185,15 +306,19 @@ Window {
 
                 Label {
                     text: qsTr("Cooking time")
-                    color: Colors.white
+                    font.pixelSize: preparationTime.font.pixelSize
+                    color: Colors.text
                 }
 
                 CustomTextField {
                     id: cookingTime
 
                     text: recipe.p_cookingTime
+                    height: preparationTime.height
+                    font.pixelSize: preparationTime.font.pixelSize
                     validator: RegularExpressionValidator { regularExpression: /\d*/ }
                     readOnly: {!editable}
+                    cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
                     anchors {
                         left: parent.left
                         right: parent.right
@@ -202,147 +327,149 @@ Window {
 
                 Label {
                     text: qsTr("Yield")
-                    color: Colors.white
+                    font.pixelSize: preparationTime.font.pixelSize
+                    color: Colors.text
                 }
 
-                CustomTextField {
-                    id: yield
-
-                    text: recipe.p_yield
-                    validator: RegularExpressionValidator { regularExpression: /\d*/ }
-                    readOnly: !editable
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-
-                }
-                Row {
+                RowLayout {
                     id: yieldButtons
 
                     signal yieldButtonClicked(str: string, oldYield: int, newYield: int)
 
-                    spacing: width * 0.25
-                    anchors.horizontalCenter: yield.horizontalCenter
-                    visible: !editable
+                    spacing: 5
+
+                    anchors {
+                        left: parent.left
+                        right:parent.right
+                    }
 
                     CustomButton {
                         id: minusYieldButton
 
-                        text: '-'
-                        height: yield.height
-                        width: yield.height
+                        text: '\uFF0D'
+                        Layout.preferredHeight: yield.height
+                        Layout.preferredWidth: height
+                        font.pixelSize: yield.font.pixelSize
+                        visible: !editable
+
                         onClicked: {
                             yield.text = Number(yield.text) > 0 ? Number(yield.text) - 1 : 0
                         }
                     }
 
+                    CustomTextField {
+                        id: yield
+
+                        text: recipe.p_yield
+                        Layout.preferredHeight: preparationTime.height
+                        font.pixelSize: preparationTime.font.pixelSize
+                        validator: RegularExpressionValidator { regularExpression: /\d*/ }
+                        readOnly: !editable
+                        cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
+
+                        Layout.fillWidth: parent
+                    }
+
                     CustomButton {
                         id: plusYieldButton
-                        text: '+'
-                        height: yield.height
-                        width: yield.height
+                        text: '\uFF0B'
+                        Layout.preferredHeight: yield.height
+                        Layout.preferredWidth: height
+                        font.pixelSize: yield.font.pixelSize
+                        visible: !editable
+
                         onClicked: {
                             yield.text = Number(yield.text) + 1
                         }
                     }
-
                 }
             }
 
             Row {
                 id: imageCheckBox
 
-                spacing: 15
+                height: visible ? Constants.height : 0
+                spacing: 5
                 visible: editable && recipe.p_pathImage != recipeImage.source
+
                 anchors {
                     left: parent.left
                     top: recipeImage.bottom
-                    bottom: ingredientBox.top
                     leftMargin: Constants.margin
                     rightMargin: Constants.margin
+                    topMargin: 10
+                    bottomMargin: 10
                 }
 
-                CheckBox {
+                CustomCheckBox {
                     id: copyImageCheckBox
 
                     text: qsTr("Copy image")
-                    font.pixelSize: 15
+                    height: imageCheckBox.height
+                    font.pixelSize: Constants.pixelSize
                     enabled: editable
                     checked: editable && recipe.p_pathImage != recipeImage.source
-
-                    anchors.verticalCenter: imageCheckBox.verticalCenter
-
-                    contentItem: Text {
-                        text: copyImageCheckBox.text
-                        color: Colors.white
-                        verticalAlignment: Text.AlignVCenter
-                        leftPadding: copyImageCheckBox.indicator.width + copyImageCheckBox.spacing
-                    }
-
-                    MouseArea {
-                        anchors.fill: copyImageCheckBox
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {copyImageCheckBox.checked = !copyImageCheckBox.checked}
-                    }
                 }
 
-                CheckBox {
+                CustomCheckBox {
                     id: deleteImageCheckBox
 
-                    text: qsTr("Delete the previous image")
-                    font.pixelSize: 15
+                    text: qsTr("Delete previous image")
+                    height: imageCheckBox.height
+                    font.pixelSize: copyImageCheckBox.font.pixelSize
                     enabled: editable
                     checked: editable && recipe.p_pathImage != recipeImage.source
-                    anchors.verticalCenter: imageCheckBox.verticalCenter
-
-                    contentItem: Text {
-                        text: deleteImageCheckBox.text
-                        color: Colors.white
-                        verticalAlignment: Text.AlignVCenter
-                        leftPadding: deleteImageCheckBox.indicator.width + deleteImageCheckBox.spacing
-                    }
-
-                    MouseArea {
-                        anchors.fill: deleteImageCheckBox
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {deleteImageCheckBox.checked = !deleteImageCheckBox.checked}
-                    }
                 }
             }
 
             ScrollView {
                 id: scrollInstruction
-                width: (parent.width + anchors.rightMargin + anchors.leftMargin)/2
+
+                implicitHeight: parent.height
+                implicitWidth: parent.width
+
                 clip: true
 
                 anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: recipeImage.bottom
-                    bottom: rowButtons.top
-                    margins: Constants.margin
+                    leftMargin: Constants.margin
+                    rightMargin: Constants.margin
+                    bottomMargin: Constants.margin
                 }
 
                 ScrollBar.vertical: CustomScrollBar {
-                    anchors.top: scrollInstruction.top
-                    anchors.right: scrollInstruction.right
-                    anchors.bottom: scrollInstruction.bottom
+                    id: instructionsScrollBar
+
+                    anchors {
+                        right: scrollInstruction.right
+                        top: scrollInstruction.top
+                        bottom: scrollInstruction.bottom
+                    }
                 }
 
                 TextArea {
                     id: instructionsText
 
+                    implicitHeight: 300
                     placeholderText: qsTr("Instructions")
                     text: p_instructions
-                    selectionColor: Colors.darkGrey
-                    selectedTextColor: Colors.white
+                    color: Colors.text
+                    font.pixelSize: Constants.pixelSize
+                    selectionColor: Colors.selection
+                    selectedTextColor: Colors.selectedText
+                    placeholderTextColor: Colors.placeholderText
                     wrapMode: Text.Wrap
-                    font.pixelSize: 15
                     readOnly: {!editable}
                     background: Rectangle {
-                        color: Colors.grey
+                        color: Colors.bgText
                         radius: Constants.radius
+                    }
+
+                    MouseArea {
+                        hoverEnabled: true
+                        cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
+                        anchors.fill: parent
+
+                        onClicked: instructionsText.forceActiveFocus()
                     }
                 }
             }
@@ -355,20 +482,23 @@ Window {
                     right: parent.right
                     top: title.bottom
                     bottom: scrollInstruction.top
-                    margins: Constants.margin
+                    leftMargin: Constants.margin
+                    rightMargin: Constants.margin
+                    topMargin: 5
+                    bottomMargin: Constants.margin
                 }
 
                 CustomButton {
                     id: addIngredientButton
 
                     text: 'Add ingredient'
-                    height: 23
+                    height: editable ? Constants.height : 0
+                    font.pixelSize: Constants.pixelSize
                     enabled: editable
                     visible: editable
                     anchors {
                         left: parent.left
                         right: parent.right
-                        rightMargin: 10
                     }
 
                    onClicked: recipe.p_recipe.appendIngredient()
@@ -376,6 +506,7 @@ Window {
 
                 ListView {
                     id: ingredientsList
+
                     property int parentIndex: index
 
                     spacing: 5
@@ -395,11 +526,11 @@ Window {
 
                     delegate: Item {
                         id: ingredient
-                        
+
                         property string p_name: recipe.p_recipe?.name(index) ?? ""
                         property string p_quantity: recipe.p_recipe?.quantity(index) ?? ""
 
-                        width: ingredientsList.width - ingredientsListScrollBar.width
+                        width: ingredientsList.width - (ingredientsListScrollBar.opacity ? ingredientsListScrollBar.width : 0)
                         height: Math.max(name.height, quantity.height)
                         anchors.rightMargin: 5
 
@@ -409,22 +540,24 @@ Window {
 
                             anchors {
                                 left: parent.left
-                                right: removeButton.left
+                                right: parent.right
                                 top:  parent.top
                                 bottom: parent.bottom
-                                rightMargin: 5
+                                rightMargin: (editable ? removeButton.width + 5 : 0)
                             }
 
                             Autocomplete {
                                 id: name
-                                
-                                role: AutocompleteEnum.Ingredient
-                                bottomBoundY: root.height
+
                                 placeholderText: qsTr("Ingredient")
                                 width: ingredientForm.width / 2
+                                font.pixelSize: Constants.pixelSize
                                 horizontalAlignment: Text.AlignLeft
                                 text: ingredient.p_name
                                 readOnly: {!editable}
+                                cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
+                                role: AutocompleteEnum.Ingredient
+                                bottomBoundY: root.height
                                 anchors {
                                     left: parent.left
                                     right: quantity.left
@@ -444,15 +577,18 @@ Window {
 
                             CustomTextField {
                                 id: quantity
+
                                 property string quantityProportion: ingredient.p_quantity
 
                                 placeholderText: qsTr("Quantity")
                                 width: ingredientForm.width / 2
-                                selectionColor: Colors.darkGrey
-                                selectedTextColor: Colors.white
+                                font.pixelSize: Constants.pixelSize
+                                selectionColor: Colors.selection
+                                selectedTextColor: Colors.text
                                 horizontalAlignment: Text.AlignLeft
                                 text: editable ? ingredient.p_quantity : quantityProportion
                                 readOnly: !editable
+                                cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor
                                 anchors {
                                     right: parent.right
                                     leftMargin: 5
@@ -483,10 +619,10 @@ Window {
                         CustomButton {
                             id: removeButton
 
-                            width: 23
-                            height: width
-                            text: "\u2212"
-                            font.pixelSize: 15
+                            width: height
+                            height: Constants.height
+                            text: "\uFF0D"
+                            font.pixelSize: Constants.pixelSize
                             bottomPadding: 10
                             enabled: editable
                             visible: editable
@@ -512,10 +648,9 @@ Window {
                         anchors {
                             left: parent.left
                             right: parent.right
-                            top: recipeImage.bottom
+                            top: imageCheckBox.bottom
                             bottom: rowButtons.top
                         }
-
                     }
                     AnchorChanges {
                         target: ingredientBox
@@ -527,12 +662,13 @@ Window {
                             bottom: scrollInstruction.top
                         }
                     }
-                    AnchorChanges {
-                        target: imageCheckBox
-
-                        anchors {
-                            bottom: scrollInstruction.top
-                        }
+                    PropertyChanges {
+                        target: scrollInstruction
+                        anchors.topMargin: 10
+                    }
+                    PropertyChanges {
+                        target: ingredientBox
+                        anchors.topMargin: Constants.margin
                     }
                 },
                 State {
@@ -555,25 +691,27 @@ Window {
                         anchors {
                             left: parent.left
                             right: scrollInstruction.left
-                            top: recipeImage.bottom
+                            top: imageCheckBox.bottom
                             bottom: rowButtons.top
                         }
                     }
-                    AnchorChanges {
-                        target: imageCheckBox
-
-                        anchors {
-                            bottom: ingredientBox.top
-                        }
+                    PropertyChanges {
+                        target: scrollInstruction
+                        anchors.topMargin: Constants.margin
+                    }
+                    PropertyChanges {
+                        target: ingredientBox
+                        anchors.topMargin: 10
                     }
                 }
             ]
 
             RowLayout {
                 id: rowButtons
+
                 property var ingredients: []
 
-                height: 20
+                height: Constants.height
                 width: parent.width * 0.3
 
                 anchors {
@@ -585,7 +723,8 @@ Window {
                 CustomButton {
                     text: "Edit"
                     Layout.fillWidth: true
-                    font.pixelSize: 15
+                    Layout.fillHeight: true
+                    font.pixelSize: Constants.pixelSize
                     visible: !editable
 
                     onClicked: {
@@ -613,7 +752,8 @@ Window {
                 CustomButton {
                     text: "Confirm"
                     Layout.fillWidth: true
-                    font.pixelSize: 15
+                    Layout.fillHeight: true
+                    font.pixelSize: Constants.pixelSize
                     visible: editable
 
                     onClicked: {
@@ -660,7 +800,8 @@ Window {
                 CustomButton {
                     text: "Cancel"
                     Layout.fillWidth: true
-                    font.pixelSize: 15
+                    Layout.fillHeight: true
+                    font.pixelSize: Constants.pixelSize
                     visible: editable
 
                     onClicked: {
@@ -684,7 +825,8 @@ Window {
                 CustomButton {
                     text: "Delete"
                     Layout.fillWidth: true
-                    font.pixelSize: 15
+                    Layout.fillHeight: true
+                    font.pixelSize: Constants.pixelSize
                     visible: editable
 
                     onClicked: {
@@ -713,7 +855,7 @@ Window {
             cur = regex.lastIndex - match[0].length
 
             let notNumber = str.substring(prev, cur)
-            
+
             consecutiveNumber = /^ +$/.test(notNumber)
             if (consecutiveNumber === false) {
                 splitStr.push(notNumber)

@@ -1,3 +1,5 @@
+import qml.imports.Constants
+
 import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
@@ -11,21 +13,22 @@ T.ScrollBar {
                              implicitContentHeight + topPadding + bottomPadding)
 
     padding: 2
-    visible: true
+    opacity: size < 1 ? 1 : 0
     minimumSize: orientation == Qt.Horizontal ? height / width : width / height
-    opacity: size < 1  ? 1 : 0
 
     contentItem: Rectangle {
+        implicitHeight: 8
         implicitWidth: 8
 
         radius: width / 2
-        color: "grey"
+        color: Colors.lightGrey
     }
 
     background: Rectangle {
+        implicitHeight: 10
         implicitWidth: 10
 
         radius: width / 2
-        color: "white"
+        color: Colors.bgSecondary
     }
 }

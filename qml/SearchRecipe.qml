@@ -8,9 +8,10 @@ import QtQuick.Controls
 Item {
     readonly property int margin: 10
 
-    id: root
-    width: Constants.minWidth
-    height: Constants.minHeight
+    id: root 
+    implicitHeight: Constants.minHeight
+    implicitWidth: Constants.minWidth
+
 
     // FORM recipe name + list of ingredient names
     SearchRecipeForm {
@@ -20,6 +21,7 @@ Item {
             left: parent.left
             bottom: parent.bottom
             top: parent.top
+            margins: 10
         }
     }
 
@@ -27,12 +29,13 @@ Item {
     ListView {
         id: recipesList
         clip: true
-
+        spacing: 5
         anchors {
             left: form.right
             right: parent.right
             top: parent.top
             bottom: parent.bottom
+            leftMargin: 10
         }
 
         ScrollBar.vertical: CustomScrollBar {
@@ -41,13 +44,17 @@ Item {
 
         model: _recipesList
 
-        delegate: Item {
-            height: 150
-            width: recipesList.width - recipeScrollBar.width
+        delegate: Rectangle {
             id: recipe
+            height: 150
+            width: recipesList.width - (recipeScrollBar.opacity ? recipeScrollBar.width : 0)
+            radius: Constants.radius
+            color: Colors.bgSecondary
 
-            ToolBar {
+            Rectangle {
                 id: toolBar
+                height: 30
+                color: Colors.bgSecondary
                 anchors {
                     top: parent.top
                     left: parent.left
@@ -56,27 +63,32 @@ Item {
 
                 Text {
                     id: recipeTitle
+
                     text: _recipesList.recipe(index).title ?? ""
                     style: Text.Raised
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
                     font.pointSize: 16
-
+                    color: Colors.text
+                    elide: Text.ElideRight
                     anchors {
                         left: parent.left
+                        right: openRecipe.left
                         verticalCenter: parent.verticalCenter
+                        rightMargin: root.margin
                     }
                 }
 
-                Button {
-                    icon.source: "icons/placeholder.svg"
+                CustomButton {
+                    id: openRecipe
 
+                    icon.source: "icons/open-in-popup.svg"
+                    icon.color: openRecipe.down ? Colors.white : Colors.bgSecondary
                     anchors {
                         right: parent.right;
                         top: parent.top;
                         bottom: parent.bottom;
                     }
-
                     onClicked: {
                         recipeWindow.visible = true
                         _recipesList.recipe(index).getIngredients()
@@ -90,14 +102,12 @@ Item {
                 height: recipe.height
                 fillMode: Image.PreserveAspectFit
                 source: _recipesList.recipe(index).pathImage ? _recipesList.recipe(index).pathImage : "icons/placeholder.svg"
-
                 anchors {
                     left: parent.left
                     top: toolBar.bottom
                     bottom: parent.bottom
                     margins: root.margin
                 }
-
                 asynchronous : true
             }
 
@@ -109,43 +119,41 @@ Item {
                     bottom: recipeImage.bottom
                     leftMargin: root.margin
                     rightMargin: root.margin
-
-                    
                 }
 
                 Text {
                     text: qsTr("Preparaton time")
-                    color: Colors.white
+                    color: Colors.text
                 }
 
                 Text {
                     id: preparationTime
                     text: _recipesList.recipe(index).preparationTime  ?? 0
-                    color: Colors.white
+                    color: Colors.text
                     wrapMode: Text.Wrap
                 }
 
                 Text {
                     text: qsTr("Coooking time")
-                    color: Colors.white
+                    color: Colors.text
                 }
 
                 Text {
                     id: cookingTime
                     text: _recipesList.recipe(index).cookingTime  ?? 0
-                    color: Colors.white
+                    color: Colors.text
                     wrapMode: Text.Wrap
                 }
 
                 Text {
                     text: qsTr("Yield")
-                    color: Colors.white
+                    color: Colors.text
                 }
 
                 Text {
                     id: yield
                     text: _recipesList.recipe(index).yield ?? 0
-                    color: Colors.white
+                    color: Colors.text
                     wrapMode: Text.Wrap
                 }
             }
@@ -153,9 +161,11 @@ Item {
 
             ScrollView {
                 id: scrollInstruction
-                width: (parent.width + anchors.rightMargin + anchors.leftMargin)/2
-                clip: true
 
+                width: (parent.width + anchors.rightMargin + anchors.leftMargin) / 2
+                clip: true
+                rightPadding: instructionsScrollBar.width
+                leftPadding: 0
                 anchors {
                     left: box.right
                     right: parent.right;
@@ -165,6 +175,7 @@ Item {
                 }
 
                 ScrollBar.vertical: CustomScrollBar {
+                    id: instructionsScrollBar
                     anchors.top: scrollInstruction.top
                     anchors.right: scrollInstruction.right
                     anchors.bottom: scrollInstruction.bottom
@@ -174,13 +185,14 @@ Item {
                     id: instructions
                     text: _recipesList.recipe(index).instructions ?? ""
                     readOnly: true
-                    color: Colors.white
-                    selectionColor: Colors.darkGrey
-                    selectedTextColor: Colors.white
+                    color: Colors.text
+                    selectionColor: Colors.selection
+                    selectedTextColor: Colors.selectedText
+                    placeholderTextColor: Colors.placeholderText
                     wrapMode: Text.Wrap
                     font.pixelSize: 15
                     background: Rectangle {
-                        color: Colors.grey
+                        color: Colors.bgText
                         radius: Constants.radius
                     }
                 }

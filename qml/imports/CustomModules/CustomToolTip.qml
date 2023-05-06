@@ -16,7 +16,7 @@ ToolTip {
     background: Rectangle {
         id: bg
         width: root.width
-        color: Colors.grey
+        color: Colors.bgText
         border.width: 3
         radius: Constants.radius
     }

@@ -17,7 +17,7 @@ QtObject {
 
     property var mainWindow: Window {
         visible: true
-        color: Colors.darkGrey
+        color: Colors.bgPrimary
         width: Constants.minWidth
         height: Constants.minHeight
         minimumWidth: Constants.minWidth
@@ -27,21 +27,25 @@ QtObject {
         Rectangle {
             id: leftBar
             width: 32
-            color: Colors.darkerGray
+            color: Colors.bgSecondary
             anchors {
                 left: parent.left
                 top: parent.top
                 bottom: parent.bottom
             }
 
-            Button {
-                width: 32
+            CustomButton {
+                width: leftBar.width
                 height: width
                 text: qsTr("\u2630")
+                font.pixelSize: height * 0.60
+                radius: 0
+
                 anchors {
                     left: parent.left
                     right: parent.right
                 }
+
                 onClicked: drawer.open()
             }
         }
@@ -50,13 +54,19 @@ QtObject {
             id: drawer
             width: mainWindow.width * 0.33
             height: mainWindow.height
+            background: Rectangle {
+                color: Colors.bgSecondary
+            }
 
             Column {
                 anchors.fill: parent
+                spacing: 3
 
-                ItemDelegate {
+                CustomButton {
                     text: qsTr("Search recipe")
                     width: parent.width
+                    radius: 0
+
                     onClicked: {
                         stackView.pop()
                         stackView.push("SearchRecipe.qml")
@@ -64,9 +74,11 @@ QtObject {
                     }
                 }
 
-                ItemDelegate {
+                CustomButton {
                     text: qsTr("Add recipe")
                     width: parent.width
+                    radius: 0
+
                     onClicked: {
                         stackView.pop()
                         stackView.push("AddRecipe.qml")
@@ -77,7 +89,8 @@ QtObject {
         }
 
         Rectangle {
-            color: Colors.darkGrey
+            color: Colors.bgPrimary
+
             anchors {
                 left: leftBar.right
                 right: parent.right

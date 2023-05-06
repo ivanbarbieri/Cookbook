@@ -9,19 +9,18 @@ import QtQuick.Controls
 Item {
     id: root
 
-    readonly property int heightTextField: 23
-    readonly property int heightButton: 23
-
     CustomButton {
         id: searchButton
+
         text: 'Search'
         width: parent.width
-        height: 23
+        height: Constants.height
 
         anchors {
             left: parent.left
             right: parent.right
             top: parent.top
+            bottomMargin: 10
         }
 
         onClicked: _searchRecipe.search(title.text)
@@ -29,25 +28,32 @@ Item {
 
     Autocomplete {
         id: title
+
         role: AutocompleteEnum.Title
         bottomBoundY: root.height
         placeholderText: qsTr("Name recipe")
-        height: heightTextField
+        height: Constants.height
+
         anchors {
             left: parent.left
             right: parent.right
             top: searchButton.bottom
+            topMargin: 10
+            bottomMargin: 10
         }
     }
 
     CustomButton {
         id: addIngredientButton
+
         text: 'Add ingredient'
-        height: 23
+        height: Constants.height
+
         anchors {
             left: parent.left
             right: parent.right
             top: title.bottom
+            topMargin: 10
         }
 
         onClicked: _searchRecipe.appendIngredient()
@@ -78,8 +84,8 @@ Item {
         model: _searchRecipe
 
         delegate: Item {
-            width: listView.width - scrollBar.width
-            height: heightTextField
+            width: listView.width - (scrollBar.opacity ? scrollBar.width : 0)
+            height: Constants.height
 
             anchors {
                 rightMargin: 5
@@ -87,10 +93,11 @@ Item {
 
             Autocomplete {
                 id: ingredient
+
                 role: AutocompleteEnum.Ingredient
                 bottomBoundY: listView.height
-                width: parent.width/2
-                height: heightTextField
+                width: parent.width / 2
+                height: Constants.height
                 placeholderText: qsTr("Ingredient")
                 horizontalAlignment: Text.AlignLeft
                 focus: false
@@ -115,11 +122,11 @@ Item {
 
             CustomButton {
                 id: removeButton
+
                 width: ingredient.height
                 height: width
-                text: "\u2212"
+                text: "\uFF0D"
                 font.pointSize: 15
-                bottomPadding: 10
 
                 anchors {
                     right: parent.right
