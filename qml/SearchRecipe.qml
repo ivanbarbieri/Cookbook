@@ -176,25 +176,19 @@ Item {
 
                 ScrollBar.vertical: CustomScrollBar {
                     id: instructionsScrollBar
-                    anchors.top: scrollInstruction.top
-                    anchors.right: scrollInstruction.right
-                    anchors.bottom: scrollInstruction.bottom
+
+                    anchors {
+                        top: scrollInstruction.top
+                        right: scrollInstruction.right
+                        bottom: scrollInstruction.bottom
+                    }
                 }
 
-                TextArea {
+                CustomTextArea {
                     id: instructions
+
                     text: _recipesList.recipe(index).instructions ?? ""
                     readOnly: true
-                    color: Colors.text
-                    selectionColor: Colors.selection
-                    selectedTextColor: Colors.selectedText
-                    placeholderTextColor: Colors.placeholderText
-                    wrapMode: Text.Wrap
-                    font.pixelSize: 15
-                    background: Rectangle {
-                        color: Colors.bgText
-                        radius: Constants.radius
-                    }
                 }
             }
         }

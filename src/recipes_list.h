@@ -16,8 +16,9 @@ public:
         RecipeRole = Qt::UserRole
     };
 
+    RecipesList() = default;
+    ~RecipesList() = default;
     explicit RecipesList(const QString &connectionName, QObject *parent = nullptr);
-    ~RecipesList();
 
     // QAbstractItemModel interface
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;

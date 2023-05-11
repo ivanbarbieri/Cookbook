@@ -15,6 +15,8 @@ public:
     };
     Q_ENUM(AutocompleteEnum)
 
+    Autocomplete() = default;
+    ~Autocomplete() = default;
     explicit Autocomplete(const QString &connectionName, QObject *parent = nullptr);
 
     QHash<int, QByteArray> roleNames() const override;

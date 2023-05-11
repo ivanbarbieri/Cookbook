@@ -5,10 +5,6 @@ RecipesList::RecipesList(const QString &connectionName, QObject *parent) : QAbst
 {
 }
 
-RecipesList::~RecipesList()
-{
-}
-
 int RecipesList::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)

@@ -13,13 +13,6 @@
 
 class QFile;
 
-Recipe::Recipe(QObject *parent) : QAbstractListModel(parent)
-{}
-
-Recipe::~Recipe()
-{
-}
-
 Recipe::Recipe(const QString &connectionName,
                int recipeId,
                const QString &pathImage,

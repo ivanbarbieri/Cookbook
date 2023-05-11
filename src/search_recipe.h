@@ -15,6 +15,8 @@ public:
         IngredientRole = Qt::UserRole
     };
 
+    SearchRecipe() = default;
+    ~SearchRecipe() = default;
     explicit SearchRecipe(QSharedPointer<RecipesList> rl, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex& parent) const override;

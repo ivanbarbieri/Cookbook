@@ -30,11 +30,11 @@ public:
         QuantityRole
     };
 
-    explicit Recipe(QObject *parent = nullptr);
+    Recipe() = default;
+    ~Recipe() = default;
     Recipe(const QString &connectionName, int recipeId, const QString &pathImage, const QString &title,
            int preparationTime, int cookingTime, int yield, const QString &instructions,
            const QList<QSharedPointer<Ingredient>> &ingredientsList, QObject *parent = nullptr);
-    ~Recipe();
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;

@@ -6,10 +6,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 enable_testing()
 
-find_package(Qt6 6.3 COMPONENTS Sql Quick Gui REQUIRED)
-qt_standard_project_setup()
+find_package(Qt6 REQUIRED COMPONENTS Sql Quick Gui)
+qt_standard_project_setup(REQUIRES 6.5)
+
 
 set(header
     src/db_manager.h
@@ -49,6 +52,7 @@ qt_add_executable(${PROJECT_NAME}
 qt_add_qml_module(${PROJECT_NAME}
     URI ${PROJECT_NAME}
     VERSION 1.0
+    OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     SOURCES
         ${sources}
         ${header}

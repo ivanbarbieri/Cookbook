@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterUncreatableType<Autocomplete>("AutocompleteEnum", 1, 0, "AutocompleteEnum", "Not creatable as it is an enum type");
 
-    engine.load(QUrl(QStringLiteral("Cookbook/qml/main.qml")));
+    engine.load(QUrl(QStringLiteral("qml/main.qml")));
 
     return app.exec();
 }

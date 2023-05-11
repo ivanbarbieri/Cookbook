@@ -2,8 +2,9 @@ import qml.imports.Constants
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Basic as Basic
 
-TextField {
+Basic.TextField {
     id: control
 
     property alias cursorShape: mouseArea.cursorShape

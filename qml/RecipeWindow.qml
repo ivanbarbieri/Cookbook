@@ -446,24 +446,12 @@ Window {
                     }
                 }
 
-                TextArea {
+                CustomTextArea {
                     id: instructionsText
 
-                    implicitHeight: 300
                     placeholderText: qsTr("Instructions")
                     text: p_instructions
-                    color: Colors.text
-                    font.pixelSize: Constants.pixelSize
-                    selectionColor: Colors.selection
-                    selectedTextColor: Colors.selectedText
-                    placeholderTextColor: Colors.placeholderText
-                    wrapMode: Text.Wrap
                     readOnly: {!editable}
-                    background: Rectangle {
-                        color: Colors.bgText
-                        radius: Constants.radius
-                    }
-
                     MouseArea {
                         hoverEnabled: true
                         cursorShape: editable ? Qt.IBeamCursor : Qt.ArrowCursor

@@ -347,20 +347,10 @@ Rectangle {
             }
         }
 
-        TextArea {
+        CustomTextArea {
             id: instructionsText
 
             placeholderText: qsTr("Instructions")
-            placeholderTextColor: Colors.placeholderText
-            color: Colors.text
-            selectionColor: Colors.selection
-            selectedTextColor: Colors.selectedText
-            wrapMode: Text.Wrap
-            font.pixelSize: Constants.pixelSize
-            background: Rectangle {
-                color: Colors.bgText
-                radius: Constants.radius
-            }
 
             onEditingFinished: _recipe.instructions = text
         }
