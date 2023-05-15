@@ -73,6 +73,9 @@ Item {
 
         ScrollBar.vertical: CustomScrollBar {
             id: scrollBar
+
+            enabled: scrollBar.opacity
+            hoverEnabled: scrollBar.opacity
         }
 
         MouseArea {
