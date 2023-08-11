@@ -13,6 +13,8 @@ enable_testing()
 find_package(Qt6 REQUIRED COMPONENTS Sql Quick Gui)
 qt_standard_project_setup(REQUIRES 6.5)
 
+# https://stackoverflow.com/questions/74854202/qmltyperegistration-include-path-does-not-acknowledge-subdirectories
+include_directories(src)
 
 set(header
     src/db_manager.h
