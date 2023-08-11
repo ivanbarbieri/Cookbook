@@ -841,7 +841,7 @@ Window {
 
         while (match) {
             cur = regex.lastIndex - match[0].length
-
+            
             let notNumber = str.substring(prev, cur)
 
             consecutiveNumber = /^ +$/.test(notNumber)
@@ -874,6 +874,7 @@ Window {
         if (newString === "")
             return str
 
+        newString += str.substring(prev, str.lenght)
         return newString
     }
 }
