@@ -114,6 +114,12 @@ Item {
                     margins: root.margin
                 }
                 asynchronous : true
+
+                onStatusChanged: {
+                    if (recipeImage.status === Image.Error || recipeImage.status === Image.Null) {
+                        source = "icons/placeholder.svg"
+                    }
+                }
             }
 
             Column {
