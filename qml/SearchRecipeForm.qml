@@ -128,8 +128,8 @@ Item {
 
                 width: ingredient.height
                 height: width
-                text: "\uFF0D"
-                font.pointSize: 15
+                text: '\uFF0D'
+                font.pixelSize: Constants.pixelSize
 
                 anchors {
                     right: parent.right

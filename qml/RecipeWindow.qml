@@ -609,9 +609,8 @@ Window {
 
                             width: height
                             height: Constants.height
-                            text: "\uFF0D"
+                            text: '\uFF0D'
                             font.pixelSize: Constants.pixelSize
-                            bottomPadding: 10
                             enabled: editable
                             visible: editable
                             anchors {
