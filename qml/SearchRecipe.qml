@@ -9,6 +9,7 @@ Item {
     readonly property int margin: 10
 
     id: root 
+
     implicitHeight: Constants.minHeight
     implicitWidth: Constants.minWidth
 
@@ -16,6 +17,7 @@ Item {
     // FORM recipe name + list of ingredient names
     SearchRecipeForm {
         id: form
+
         width: 155
         anchors {
             left: parent.left
@@ -46,6 +48,7 @@ Item {
 
         delegate: Rectangle {
             id: recipe
+
             height: 150
             width: recipesList.width - (recipeScrollBar.opacity ? recipeScrollBar.width : 0)
             radius: Constants.radius
@@ -53,6 +56,7 @@ Item {
 
             Rectangle {
                 id: toolBar
+
                 height: 30
                 color: Colors.bgSecondary
                 anchors {
@@ -99,7 +103,8 @@ Item {
 
             Image {
                 id: recipeImage
-                height: recipe.height
+
+                width: (recipeImage.height - root.margin) * 16/9
                 fillMode: Image.PreserveAspectFit
                 source: _recipesList.recipe(index).pathImage ? _recipesList.recipe(index).pathImage : "icons/placeholder.svg"
                 anchors {
@@ -113,6 +118,7 @@ Item {
 
             Column {
                 id: box
+
                 anchors {
                     left: recipeImage.right
                     top: recipeImage.top
@@ -152,6 +158,7 @@ Item {
 
                 Text {
                     id: yield
+
                     text: _recipesList.recipe(index).yield ?? 0
                     color: Colors.text
                     wrapMode: Text.Wrap
