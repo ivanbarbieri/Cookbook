@@ -162,6 +162,7 @@ Window {
 
         clip: true
         interactive: false
+        snapMode: ListView.SnapToItem
 
         anchors {
             left: parent.left
