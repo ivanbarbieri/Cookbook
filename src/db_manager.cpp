@@ -98,12 +98,22 @@ bool DbManager::createTables() const
 bool DbManager::createTriggers() const
 {
     QSqlQuery query(db);
-    if (!query.exec("CREATE TRIGGER IF NOT EXISTS delete_unused_ingredients"
+    if (!query.exec("CREATE TRIGGER IF NOT EXISTS delete_unused_ingredients_on_recipes_ingredients"
                     " AFTER DELETE ON recipes_ingredients"
                     " BEGIN"
                     "   DELETE FROM ingredients"
                     "   WHERE ingredientId NOT IN ("
                     "       SELECT ingredientId FROM recipes_ingredients);"
+                    " END")) {
+        qWarning() << errorMessage(query);
+        return false;
+    }
+    if (!query.exec("CREATE TRIGGER IF NOT EXISTS delete_unused_ingredients_on_recipes"
+                    " AFTER DELETE ON recipes"
+                    " BEGIN"
+                    "   DELETE FROM recipes_ingredients"
+                    "   WHERE ingredientId NOT IN ("
+                    "       SELECT ingredientId FROM recipes);"
                     " END")) {
         qWarning() << errorMessage(query);
         return false;

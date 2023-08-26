@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     QScopedPointer<DbManager> db(new DbManager(driver, connectionName, path));
 
-    if (!db->isOpen() || !db->createTables() || !db->createTriggers())
+    if (!db->isOpen() || !db->createTables() || !db->foreignKeys(true) || !db->createTriggers())
         exit(-1);
 
     QSharedPointer<RecipesList> recipesList(new RecipesList(connectionName));

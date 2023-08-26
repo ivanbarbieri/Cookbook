@@ -48,6 +48,7 @@ void TestRecipeFile::initTestCase()
     db.reset(new DbManager{mDriver, mConnectionName, mPath});
     QVERIFY(db->isOpen());
     QVERIFY(db->createTables());
+    QVERIFY(db->foreignKeys(true));
     QVERIFY(db->createTriggers());
 }
 
