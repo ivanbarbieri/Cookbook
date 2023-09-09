@@ -229,6 +229,8 @@ Window {
             Image {
                 id: recipeImage
 
+                property bool imageChanged: false
+
                 width: Math.min(listview.width, listview.height) * 0.3
                 height: width
                 fillMode: Image.PreserveAspectFit
@@ -244,6 +246,15 @@ Window {
                 onStatusChanged: {
                     if (recipeImage.status === Image.Error || recipeImage.status === Image.Null) {
                         source = "icons/placeholder.svg"
+                    }
+
+                    if (recipe.p_pathImage != recipeImage.source) {
+//                        recipeImage.source = recipe.p_pathImage
+                        imageChanged = true
+                        copyImageCheckBox.checked = true
+                    } else {
+                        imageChanged = false
+                        copyImageCheckBox.checked = false
                     }
                 }
 
@@ -391,7 +402,7 @@ Window {
 
                 height: visible ? Constants.height : 0
                 spacing: 5
-                visible: editable && recipe.p_pathImage != recipeImage.source
+                visible: editable && recipeImage.imageChanged
 
                 anchors {
                     left: parent.left
@@ -409,7 +420,7 @@ Window {
                     height: imageCheckBox.height
                     font.pixelSize: Constants.pixelSize
                     enabled: editable
-                    checked: editable && recipe.p_pathImage != recipeImage.source
+                    checked: false
                 }
 
                 CustomCheckBox {
@@ -419,7 +430,7 @@ Window {
                     height: imageCheckBox.height
                     font.pixelSize: copyImageCheckBox.font.pixelSize
                     enabled: editable
-                    checked: editable && recipe.p_pathImage != recipeImage.source
+                    checked: false
                 }
             }
 
@@ -747,7 +758,6 @@ Window {
                     onClicked: {
                         let previousImage = recipe.p_pathImage
 
-                        editable = false
                         recipe.p_recipe.setTitle(title.text)
                         recipe.p_recipe.setPathImage(recipeImage.source)
                         recipe.p_recipe.setPreparationTime(preparationTime.text)
@@ -781,7 +791,13 @@ Window {
                             toolTip_update.text = "Failed to update recipe :("
                             toolTip_update.bgColor = Colors.red
                         }
+
                         toolTip_update.open()
+                        recipeImage.source = recipe.p_pathImage
+                        editable = false
+                        recipeImage.imageChanged = false
+                        copyImageCheckBox.checked = false
+                        deleteImageCheckBox.checked = false
                     }
                 }
 
@@ -794,6 +810,9 @@ Window {
 
                     onClicked: {
                         editable = false
+                        recipeImage.imageChanged = false
+                        copyImageCheckBox.checked = false
+                        deleteImageCheckBox.checked = false
 
                         recipe.p_recipe.removeAllIngredients()
                         while (rowButtons.ingredients.length > 0) {
