@@ -24,8 +24,12 @@ int main(int argc, char *argv[])
     RecipesList selectedRecipes(connectionName);
     Autocomplete autocomplete(connectionName);
 
+    const QString qtVersion = QString("Qt Version: %1.%2.%3\n").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH);
+    const QString commitHash = QString("Git commit hash: %1").arg(GIT_COMMIT_HASH);
+
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
+        {"_buildInfos", QString(qtVersion + commitHash)},
         {"_recipesList", QVariant::fromValue(recipesList.data())},
         {"_searchRecipe", QVariant::fromValue(&searchRecipe)},
         {"_selectedRecipes", QVariant::fromValue(&selectedRecipes)},

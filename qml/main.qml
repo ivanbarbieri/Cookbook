@@ -12,6 +12,7 @@ QtObject {
     required property QtObject _searchRecipe
     required property QtObject _selectedRecipes
     required property QtObject _autocomplete
+    required property string _buildInfos
 
     id: root
 
@@ -59,7 +60,13 @@ QtObject {
             }
 
             Column {
-                anchors.fill: parent
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    bottom: parent.about
+                }
+
                 spacing: 3
 
                 CustomButton {
@@ -83,6 +90,47 @@ QtObject {
                         stackView.pop()
                         stackView.push("AddRecipe.qml")
                         drawer.close()
+                    }
+                }
+            }
+
+            ColumnLayout {
+                id: about
+
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    bottom: parent.bottom
+                    margins: Constants.margin
+                }
+
+                Text {
+                    text: _buildInfos
+                    color: Colors.text
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignLeft
+                    font.pixelSize: 12
+                }
+
+                Rectangle {
+                    Layout.preferredHeight: 28
+                    Layout.preferredWidth: height
+                    radius: height/2
+                    color: Colors.black
+
+                    Image {
+                        source: "icons/github-mark-white.svg"
+                        sourceSize: Qt.size(parent.width, parent.height)
+                        smooth: true
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        anchors.fill: parent
+
+                        onClicked: Qt.openUrlExternally("https://github.com/ivanbarbieri/Cookbook")
                     }
                 }
             }

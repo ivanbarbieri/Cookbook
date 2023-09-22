@@ -13,6 +13,23 @@ enable_testing()
 find_package(Qt6 REQUIRED COMPONENTS Sql Quick Gui)
 qt_standard_project_setup(REQUIRES 6.5)
 
+find_package(Git REQUIRED)
+
+execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE GIT_BRANCH_NAME
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+add_compile_definitions(GIT_BRANCH_NAME="${GIT_BRANCH_NAME}")
+add_compile_definitions(GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
+
 # https://stackoverflow.com/questions/74854202/qmltyperegistration-include-path-does-not-acknowledge-subdirectories
 include_directories(src)
 
@@ -45,6 +62,8 @@ set(qml
 set(resources
     qml/icons/placeholder.svg
     qml/icons/open-in-popup.svg
+    qml/icons/github-mark.svg
+    qml/icons/github-mark-white.svg
 )
 
 qt_add_executable(${PROJECT_NAME}
