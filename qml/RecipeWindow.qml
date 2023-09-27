@@ -249,7 +249,6 @@ Window {
                     }
 
                     if (recipe.p_pathImage != recipeImage.source) {
-//                        recipeImage.source = recipe.p_pathImage
                         imageChanged = true
                         copyImageCheckBox.checked = true
                     } else {

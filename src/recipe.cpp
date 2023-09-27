@@ -471,7 +471,7 @@ bool Recipe::copyImage()
 
     QUrl url(mPathImage);
     QDir dir{QDir::current()};
-    if (!dir.mkpath(dirImages))
+        if (!dir.mkpath(dirImages))
         return false;
 
     if (!dir.cd(dirImages))
@@ -484,7 +484,6 @@ bool Recipe::copyImage()
 
         return false;
     }
-
 
     QFileInfo image{url.fileName()};
     QString name{image.baseName()};
@@ -506,13 +505,13 @@ bool Recipe::copyImage()
     }
 
     name.append("." + image.completeSuffix());
-    name = dir.filePath(name);
+    name = dirImages + "/" + name;
 
     QSqlQuery query(db);
     query.prepare("UPDATE recipes SET"
                   " pathImage = :pathImage"
                   " WHERE recipeId = :recipeId");
-    query.bindValue(":pathImage", QUrl::fromLocalFile(dir.filePath(name)).toString());
+    query.bindValue(":pathImage", QUrl::fromLocalFile(name).toString());
     query.bindValue(":recipeId", mRecipeId);
     if (!query.exec()) {
         qWarning() << DbManager::errorMessage(query);
@@ -524,12 +523,12 @@ bool Recipe::copyImage()
         return false;
     }
 
-    if (QFile::copy(url.toLocalFile(), dir.filePath(name))) {
+    if (QFile::copy(url.toLocalFile(), name)) {
         if (!db.commit()) {
             qWarning() << DbManager::errorMessage(query);
             return false;
         }
-        setPathImage(QUrl::fromLocalFile(dir.filePath(name)).toString());
+        setPathImage(QUrl::fromLocalFile(name).toString());
         return true;
     }
 
