@@ -231,20 +231,15 @@ Window {
 
                 property bool imageChanged: false
 
-                width: Math.min(listview.width, listview.height) * 0.3
-                height: width
                 fillMode: Image.PreserveAspectFit
                 source: recipe.p_pathImage
                 asynchronous : true
 
-                anchors {
-                    left: parent.left
-                    top: title.bottom
-                    margins: Constants.margin
-                }
 
                 onStatusChanged: {
                     if (recipeImage.status === Image.Error || recipeImage.status === Image.Null) {
+                        imageChanged = true
+                        copyImageCheckBox.checked = true
                         source = "icons/placeholder.svg"
                     }
 
@@ -287,12 +282,6 @@ Window {
             Column {
                 id: box
 
-                anchors {
-                    left: recipeImage.right
-                    top: title.bottom
-                    bottom: recipeImage.bottom
-                    margins: Constants.margin
-                }
 
                 Label {
                     text: qsTr("Preparation time")
@@ -396,27 +385,16 @@ Window {
                 }
             }
 
-            Row {
+            RowLayout {
                 id: imageCheckBox
 
-                height: visible ? Constants.height : 0
                 spacing: 5
-                visible: editable && recipeImage.imageChanged
-
-                anchors {
-                    left: parent.left
-                    top: recipeImage.bottom
-                    leftMargin: Constants.margin
-                    rightMargin: Constants.margin
-                    topMargin: 10
-                    bottomMargin: 10
-                }
 
                 CustomCheckBox {
                     id: copyImageCheckBox
 
                     text: qsTr("Copy image")
-                    height: imageCheckBox.height
+                    Layout.fillHeight: true
                     font.pixelSize: Constants.pixelSize
                     enabled: editable
                     checked: false
@@ -426,7 +404,7 @@ Window {
                     id: deleteImageCheckBox
 
                     text: qsTr("Delete previous image")
-                    height: imageCheckBox.height
+                    Layout.fillHeight: true
                     font.pixelSize: copyImageCheckBox.font.pixelSize
                     enabled: editable
                     checked: false
@@ -436,20 +414,13 @@ Window {
             ScrollView {
                 id: scrollInstruction
 
-                implicitHeight: parent.height
-                implicitWidth: parent.width
-
                 clip: true
-
-                anchors {
-                    leftMargin: Constants.margin
-                    rightMargin: Constants.margin
-                    bottomMargin: Constants.margin
-                }
 
                 ScrollBar.vertical: CustomScrollBar {
                     id: instructionsScrollBar
+                    clip: true
 
+                    policy: ScrollBar.AsNeeded
                     anchors {
                         right: scrollInstruction.right
                         top: scrollInstruction.top
@@ -476,16 +447,6 @@ Window {
             Item {
                 id: ingredientBox
 
-                anchors {
-                    left: parent.horizontalCenter
-                    right: parent.right
-                    top: title.bottom
-                    bottom: scrollInstruction.top
-                    leftMargin: Constants.margin
-                    rightMargin: Constants.margin
-                    topMargin: 5
-                    bottomMargin: Constants.margin
-                }
 
                 CustomButton {
                     id: addIngredientButton
@@ -635,74 +596,144 @@ Window {
                 }
             }
 
-            states: [
-                State {
-                    name: "higher"
-                    when: listview.height >= listview.width
+            GridLayout {
+                id: larger
 
-                    AnchorChanges {
-                        target: scrollInstruction
+                columns: 3
+                columnSpacing : Constants.margin
+                visible: false
+                
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: title.bottom
+                    bottom: rowButtons.top
+                    margins: Constants.margin
+                }
 
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            top: imageCheckBox.bottom
-                            bottom: rowButtons.top
-                        }
-                    }
-                    AnchorChanges {
-                        target: ingredientBox
+                LayoutItemProxy {
+                    target: recipeImage
 
-                        anchors {
-                            left: box.right
-                            right: parent.right
-                            top: title.bottom
-                            bottom: scrollInstruction.top
-                        }
-                    }
-                    PropertyChanges {
-                        target: scrollInstruction
-                        anchors.topMargin: 10
-                    }
-                    PropertyChanges {
-                        target: ingredientBox
-                        anchors.topMargin: Constants.margin
-                    }
-                },
-                State {
-                    name: "larger"
-                    when: listview.width > listview.height
+                    Layout.row: 0
+                    Layout.column: 0
 
-                    AnchorChanges {
-                        target: scrollInstruction
+                    Layout.preferredHeight: Math.min(root.width, root.height) * 0.3
+                    Layout.preferredWidth: height
+                }
+                LayoutItemProxy {
+                    target: box
 
-                        anchors {
-                            left:  box.right
-                            right: parent.right
-                            top: title.bottom
-                            bottom: rowButtons.top
-                        }
-                    }
-                    AnchorChanges {
-                        target: ingredientBox
+                    Layout.row: 0
+                    Layout.column: 1
+                    Layout.alignment: Qt.AlignTop
+                }
+                Item {
+                    Layout.row: 1
+                    Layout.column: 0
+                    Layout.columnSpan: 2
 
-                        anchors {
-                            left: parent.left
-                            right: scrollInstruction.left
-                            top: imageCheckBox.bottom
-                            bottom: rowButtons.top
-                        }
-                    }
-                    PropertyChanges {
-                        target: scrollInstruction
-                        anchors.topMargin: Constants.margin
-                    }
-                    PropertyChanges {
-                        target: ingredientBox
-                        anchors.topMargin: 10
+                    Layout.preferredHeight: imageCheckBox.visible ? Constants.height : 0
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                    LayoutItemProxy {
+                        target: imageCheckBox
+
+                        visible: editable && recipeImage.imageChanged
                     }
                 }
-            ]
+
+                LayoutItemProxy {
+                    target: ingredientBox
+
+                    Layout.row: 2
+                    Layout.column: 0
+                    Layout.columnSpan: 2
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+
+                }
+                LayoutItemProxy {
+                    target: scrollInstruction
+
+                    Layout.row: 0
+                    Layout.column: 2
+                    Layout.rowSpan: 3
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+            }
+
+            GridLayout {
+                id: higher
+
+                columns: 3
+                columnSpacing : Constants.margin
+                visible: false
+
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: title.bottom
+                    bottom: rowButtons.top
+                    margins: Constants.margin
+                }
+
+                LayoutItemProxy {
+                    target: recipeImage
+
+                    Layout.row: 0
+                    Layout.column: 0
+
+                    Layout.preferredHeight: Math.min(root.width, root.height) * 0.3
+                    Layout.preferredWidth: height
+                }
+                LayoutItemProxy {
+                    target: box
+
+                    Layout.row: 0
+                    Layout.column: 1
+
+                    Layout.alignment: Qt.AlignTop
+                }
+                Item {
+                    Layout.row: 1
+                    Layout.column: 0
+                    Layout.columnSpan: 2
+
+                    Layout.preferredHeight: imageCheckBox.visible ? Constants.height : 0
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                    LayoutItemProxy {
+                        target: imageCheckBox
+
+                        visible: editable && recipeImage.imageChanged
+                    }
+                }
+
+                LayoutItemProxy {
+                    target: ingredientBox
+
+                    Layout.row: 0
+                    Layout.column: 2
+                    Layout.rowSpan: 2
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: Constants.margin
+                }
+                LayoutItemProxy {
+                    target: scrollInstruction
+
+                    Layout.row: 2
+                    Layout.column: 0
+                    Layout.columnSpan: 3
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+            }
 
             RowLayout {
                 id: rowButtons
@@ -844,6 +875,26 @@ Window {
                     }
                 }
             }
+
+            onWidthChanged: {
+                if (width > height) {
+                    larger.visible = true
+                    higher.visible = false
+                } else {
+                    larger.visible = false
+                    higher.visible = true
+                }
+            }
+
+            onHeightChanged: {
+                if (width > height) {
+                    larger.visible = true
+                    higher.visible = false
+                } else {
+                    larger.visible = false
+                    higher.visible = true
+                }
+            }
         }
     }
 
@@ -859,7 +910,7 @@ Window {
 
         while (match) {
             cur = regex.lastIndex - match[0].length
-            
+
             let notNumber = str.substring(prev, cur)
 
             consecutiveNumber = /^ +$/.test(notNumber)

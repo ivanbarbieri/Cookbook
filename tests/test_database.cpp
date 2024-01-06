@@ -27,8 +27,9 @@ private:
 };
 
 void TestDatabase::emptiesAllTables(const QSqlDatabase &db) const {
+    QSqlQuery query(db);
     for (const auto &table : db.tables())
-        db.exec("DELETE FROM " + table);
+        query.exec("DELETE FROM " + table);
 }
 
 void TestDatabase::initTestCase()
