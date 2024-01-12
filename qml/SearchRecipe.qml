@@ -176,9 +176,9 @@ Item {
                 id: scrollInstruction
 
                 width: (parent.width + anchors.rightMargin + anchors.leftMargin) / 2
-                clip: true
                 rightPadding: instructionsScrollBar.width
                 leftPadding: 0
+                contentHeight: instructions.height
                 anchors {
                     left: box.right
                     right: parent.right;

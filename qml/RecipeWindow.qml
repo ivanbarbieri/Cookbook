@@ -414,13 +414,11 @@ Window {
             ScrollView {
                 id: scrollInstruction
 
-                clip: true
+                contentHeight: instructionsText.height
 
                 ScrollBar.vertical: CustomScrollBar {
                     id: instructionsScrollBar
-                    clip: true
 
-                    policy: ScrollBar.AsNeeded
                     anchors {
                         right: scrollInstruction.right
                         top: scrollInstruction.top

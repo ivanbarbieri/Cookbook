@@ -329,7 +329,7 @@ Rectangle {
         id: instructions
 
         width: (parent.width + anchors.rightMargin + anchors.leftMargin) / 2
-        clip: true
+        contentHeight: instructions.height
 
         anchors {
             left: box.right
